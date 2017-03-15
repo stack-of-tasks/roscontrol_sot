@@ -1,0 +1,13 @@
+<launch>
+
+  <!-- Sot Controller configuration -->
+  <!-- <rosparam command="load" file="$(find roscontrol_sot_talos)/config/sot_your_robot_params_gazebo.yaml"/> -->
+  <!-- <rosparam command="load" file="$(find roscontrol_sot_talos)/config/sot_your_robot_controller.yaml" /> -->
+  
+  <!-- Spawn walking controller -->
+  <node name="sot_controller_spawner"
+        pkg="controller_manager" type="spawner" output="screen"
+        args="sot_controller" />
+
+</launch>
+
