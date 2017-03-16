@@ -48,7 +48,11 @@
 namespace rc_sot_controller 
 {
   enum SotControlMode { POSITION, EFFORT};
-  
+
+  /**
+     This class encapsulates the Stack of Tasks inside the ros-control infra-structure.
+     
+   */
   class RCSotController : public controller_interface::ControllerBase,
 			       SotLoaderBasic
   {
@@ -67,13 +71,13 @@ namespace rc_sot_controller
     std::vector<hardware_interface::JointHandle> joints_;
     std::vector<std::string> joints_name_;
 
-    /// \brief IMU
+    /// \brief Vector towards the IMU.
     std::vector<hardware_interface::ImuSensorHandle> imu_sensor_;
 
-    /// \brief Vector of 6D force sensor
+    /// \brief Vector of 6D force sensor.
     std::vector<hardware_interface::ForceTorqueSensorHandle> ft_sensors_;
     
-    /// \brief 
+    /// \brief Vector of temperature sensors for the actuators.
     std::vector<hardware_interface::ActuatorTemperatureSensorHandle> 
     act_temp_sensors_;
     
@@ -83,13 +87,13 @@ namespace rc_sot_controller
     /// \brief Interface to the joints controlled in force.
     hardware_interface::EffortJointInterface * effort_iface_;
     
-    /// \brief Interface to the sensors (IMU)
+    /// \brief Interface to the sensors (IMU).
     hardware_interface::ImuSensorInterface* imu_iface_;
 
-    /// \brief Interface to the sensors (Force)
+    /// \brief Interface to the sensors (Force).
     hardware_interface::ForceTorqueSensorInterface* ft_iface_;
     
-    /// \brief Interface to the actuator temperature sensor
+    /// \brief Interface to the actuator temperature sensor.
     hardware_interface::ActuatorTemperatureSensorInterface  * act_temp_iface_;
 
     /// @}
@@ -120,14 +124,24 @@ namespace rc_sot_controller
   public :
 
     RCSotController ();
+
+    /// \brief Read the configuration files, claims the request to the robot and initialize the Stack-Of-Tasks.
     bool initRequest (hardware_interface::RobotHW * robot_hw, 
 		      ros::NodeHandle &robot_nh,
 		      ros::NodeHandle &controller_nh,
 		      std::set<std::string> & claimed_resources);
+
+    /// \brief Claims
     bool init();
+
+    /// \brief Read the sensor values, calls the control graph, and apply the control.
+    /// 
     void update(const ros::Time&, const ros::Duration& );
+    /// \brief Starting by filling the sensors.
     void starting(const ros::Time&);
+    /// \brief Stopping the control
     void stopping(const ros::Time&);
+    /// \brief Display the kind of hardware interface that this controller is using.
     virtual std::string getHardwareInterfaceType() const;
 
   protected:
@@ -136,9 +150,14 @@ namespace rc_sot_controller
 			ros::NodeHandle &,
 			ros::NodeHandle &,
 			std::set<std::string> & claimed_resources);
+
+    /// Initialize the hardware interface using the joints.
     bool initJoints();
+    /// Initialize the hardware interface accessing the IMU.
     bool initIMU();
+    /// Initialize the hardware interface accessing the force sensors.
     bool initForceSensors();
+    /// Initialize the hardware interface accessing the temperature sensors.
     bool initTemperatureSensors();
 
     ///@{ \name Read the parameter server

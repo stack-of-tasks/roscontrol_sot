@@ -238,8 +238,6 @@ namespace rc_sot_controller
   bool RCSotController::
   readParamsFromRCToSotDevice(ros::NodeHandle &robot_nh)
   {
-    
-
     // Read libname
     if (robot_nh.hasParam("/sot_controller/map_rc_to_sot_device")) 
       {
@@ -268,10 +266,10 @@ namespace rc_sot_controller
   bool RCSotController::
   readParamsJointNames(ros::NodeHandle &robot_nh)
   {
-    // Read param for the list of joint names.
+    /// Check if the /sot_controller/joint_names parameter exists.
     if (robot_nh.hasParam("/sot_controller/joint_names")) 
       {
-	/// Read the joint_names list
+	/// Read the joint_names list from this parameter
 	robot_nh.getParam("/sot_controller/joint_names",
 			  joints_name_);
 	for(std::vector<std::string>::size_type i=0;i<joints_name_.size();i++)
@@ -281,8 +279,11 @@ namespace rc_sot_controller
     else
       return false;
 
+    /// Deduce from this the degree of freedom number.
     nbDofs_ = joints_name_.size();
+    /// Initialize the size of the data to store. 
     DataOneIter_.init(nbDofs_,1);
+    /// Initialize the data logger for 300s.
     RcSotLog.init(nbDofs_,300000);
 	
     return true;
@@ -324,18 +325,27 @@ namespace rc_sot_controller
   readParams(ros::NodeHandle &robot_nh)
   {
 
+    /// Calls readParamsSotLibName
+    // Reads the SoT dynamic library.
     if (!readParamsSotLibName(robot_nh))
       return false;
 
-    // Read param to know if we are in simulation mode
+    /// Read /sot_controller/simulation_mode to know if we are in simulation mode
+    // Defines if we are in simulation node.
     if (robot_nh.hasParam("/sot_controller/simulation_mode")) 
       simulation_mode_ = true;
     
+    /// Calls readParamsJointNames
+    // Reads the list of joints to be controlled.
     if (!readParamsJointNames(robot_nh))
       return false;
 
+    /// Calls readParamsControlMode.
+    // Defines if the control mode is position or effort
     readParamsControlMode(robot_nh);
 
+    /// Calls readParamsFromRCToSotDevice
+    // Mapping from ros-controll to sot device
     readParamsFromRCToSotDevice(robot_nh);
     return true;
   }
@@ -422,9 +432,13 @@ namespace rc_sot_controller
   void RCSotController::
   fillSensorsIn(std::string &title, std::vector<double> & data)
   {
+    /// Tries to find the mapping from the local validation
+    /// to the SoT device.
     it_map_rt_to_sot it_mapRC2Sot= mapFromRCToSotDevice.find(title);
+    /// If the mapping is found
     if (it_mapRC2Sot!=mapFromRCToSotDevice.end())
       {
+	/// Expose the data to the SoT device.
 	std::string lmapRC2Sot = it_mapRC2Sot->second;
 	sensorsIn_[lmapRC2Sot].setName(lmapRC2Sot);
 	sensorsIn_[lmapRC2Sot].setValues(data);
@@ -568,9 +582,9 @@ namespace rc_sot_controller
 	    
     std::string cmdTitle;
     if (control_mode_==POSITION)
-      cmdTitle="joints";
+      cmdTitle="cmd-joints";
     else 
-      cmdTitle="torques";
+      cmdTitle="cmd-torques";
 
     it_map_rt_to_sot it_mapRC2Sot= mapFromRCToSotDevice.find(cmdTitle);
     ODEBUG5("angleControl_.size() = " << command_.size());
@@ -592,23 +606,16 @@ namespace rc_sot_controller
     /// Update the sensors.
     fillSensors();
 
-    #if 1
-    ROS_INFO_STREAM("one_iteration : fillSensors() done");
     /// Generate a control law.
     try
       {
 	sotController_->nominalSetSensors(sensorsIn_);
-	ROS_INFO_STREAM("one_iteration : nominalSetSensors() done");
 	sotController_->getControl(controlValues_);
-	ROS_INFO_STREAM("one_iteration : getControl() done");
       }
     catch(std::exception &e) { throw e;}
 
     /// Read the control values
     readControl(controlValues_);
-
-    ROS_INFO_STREAM("one_iteration : readControl() done");
-    #endif 
 
     /// Store everything in Log.
     RcSotLog.record(DataOneIter_);
@@ -630,7 +637,7 @@ namespace rc_sot_controller
   void RCSotController::
   stopping(const ros::Time &)
   {
-    std::string afilename("/tmp/sot_pyren.log");
+    std::string afilename("/tmp/sot.log");
     RcSotLog.save(afilename);
   }
   
