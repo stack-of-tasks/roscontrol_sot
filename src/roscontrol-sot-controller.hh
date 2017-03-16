@@ -45,7 +45,7 @@
 
 #include "log.hh"
 
-namespace rc_sot_controller 
+namespace sot_controller 
 {
   enum SotControlMode { POSITION, EFFORT};
 

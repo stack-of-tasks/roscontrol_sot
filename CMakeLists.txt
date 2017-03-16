@@ -75,9 +75,6 @@ install(TARGETS rcsot_controller
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(FILES roscontrol_sot_controller_plugins.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
-)
 
 foreach(dir config launch)
   install(DIRECTORY ${dir}

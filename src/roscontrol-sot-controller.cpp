@@ -31,11 +31,14 @@
     DebugFile << x << std::endl;		\
     DebugFile.close();}
 
+#define RESERDEBUG4()
+#define ODEBUG4FULL(x)
+#define ODEBUG4(x)
 
 using namespace hardware_interface;
 using namespace rc_sot_system;
 
-namespace rc_sot_controller  
+namespace sot_controller  
 {
   typedef std::map<std::string,std::string>::iterator it_map_rt_to_sot;
   
@@ -578,7 +581,7 @@ namespace rc_sot_controller
   void RCSotController::
   readControl(std::map<std::string,dgs::ControlValues> &controlValues)
   {
-    ODEBUG5("joints_.size() = " << joints_.size());
+    ODEBUG4("joints_.size() = " << joints_.size());
 	    
     std::string cmdTitle;
     if (control_mode_==POSITION)
@@ -587,11 +590,11 @@ namespace rc_sot_controller
       cmdTitle="cmd-torques";
 
     it_map_rt_to_sot it_mapRC2Sot= mapFromRCToSotDevice.find(cmdTitle);
-    ODEBUG5("angleControl_.size() = " << command_.size());
     if (it_mapRC2Sot!=mapFromRCToSotDevice.end())
       {
 	std::string lmapRC2Sot = it_mapRC2Sot->second;
 	command_ = controlValues[lmapRC2Sot].getValues();
+	ODEBUG4("angleControl_.size() = " << command_.size());
 	for(unsigned int i=0;
 	    i<command_.size();++i)
 	  {
@@ -649,6 +652,6 @@ namespace rc_sot_controller
   }
   
 
-  PLUGINLIB_EXPORT_CLASS(rc_sot_controller::RCSotController, 
+  PLUGINLIB_EXPORT_CLASS(sot_controller::RCSotController, 
 			 controller_interface::ControllerBase);
 }
