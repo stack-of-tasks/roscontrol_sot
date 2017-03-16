@@ -25,21 +25,21 @@ Its SoT device entity is located inside the following dynamic library:
 /opt/openrobots/lib/libsot-pyrene-controller.so
 ```
 Then inside the file sot_talos_param.yaml
-'''
+```
   libname: libsot-pyrene-controller.so
-'''
+```
 
 ## Specifying the actuated state vector
 To map the joints from the URDF model to the SoT actuated state vector, it is simply done by giving the ordered list of the joints name in the URDF model.
 For instance:
-'''
+```
      joint_names: [ leg_left_1_joint, leg_left_2_joint, leg_left_3_joint, leg_left_4_joint, leg_left_5_joint, leg_left_6_joint,
     leg_right_1_joint, leg_right_2_joint, leg_right_3_joint, leg_right_4_joint, leg_right_5_joint, leg_right_6_joint,
     torso_1_joint,torso_2_joint,head_1_joint, head_2_joint,
     arm_left_1_joint, arm_left_2_joint, arm_left_3_joint, arm_left_4_joint, arm_left_5_joint, arm_left_6_joint, arm_left_7_joint, gripper_left_joint,
     arm_right_1_joint, arm_right_2_joint, arm_right_3_joint, arm_right_4_joint, arm_right_5_joint, arm_right_6_joint, arm_right_7_joint, gripper_right_joint
   ] 
-'''
+```
 
 ## Specifying the map between the ros control data and the sot device entity.
 
