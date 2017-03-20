@@ -125,11 +125,15 @@ namespace sot_controller
 
     RCSotController ();
 
-    /// \brief Read the configuration files, claims the request to the robot and initialize the Stack-Of-Tasks.
+    /// \brief Read the configuration files, 
+    /// claims the request to the robot and initialize the Stack-Of-Tasks.
     bool initRequest (hardware_interface::RobotHW * robot_hw, 
 		      ros::NodeHandle &robot_nh,
 		      ros::NodeHandle &controller_nh,
 		      std::set<std::string> & claimed_resources);
+
+    /// \brief Display claimed resources
+    void displayClaimedResources(std::set<std::string> & claimed_resources);
 
     /// \brief Claims
     bool init();

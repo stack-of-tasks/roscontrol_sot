@@ -52,6 +52,20 @@ namespace sot_controller
   {
   }
   
+  void RCSotController::
+  displayClaimedResources(std::set<std::string> & claimed_resources)
+  {
+    std::set<std::string >::iterator it_claim;
+    ROS_INFO_STREAM("Size of claimed resources: "<< claimed_resources.size());
+    for (it_claim = claimed_resources.begin(); 
+	 it_claim != claimed_resources.end(); 
+	 ++it_claim)
+      {
+	std::string aclaim = *it_claim;
+	ROS_INFO_STREAM("Claimed by RCSotController: " << aclaim);
+      }
+  }
+
   bool RCSotController::
   initRequest (hardware_interface::RobotHW * robot_hw, 
 	       ros::NodeHandle &robot_nh,
@@ -84,34 +98,25 @@ namespace sot_controller
 	ROS_ERROR("Cannot initialize this controller because it failed to be constructed");
       }
 
-    switch(control_mode_){
-    case POSITION:
+    // Get a pointer to the joint position control interface
+    pos_iface_ = robot_hw->get<PositionJointInterface>();
+    if (! pos_iface_)
       {
-	// Get a pointer to the joint position control interface
-	pos_iface_ = robot_hw->get<PositionJointInterface>();
-	if (! pos_iface_)
-	  {
-	    ROS_ERROR("This controller requires a hardware interface of type '%s'."
-		      " Make sure this is registered in the hardware_interface::RobotHW class.",
-		      getHardwareInterfaceType().c_str());
-	    return false ;
-	  }
+	ROS_ERROR("This controller requires a hardware interface of type '%s'."
+		  " Make sure this is registered in the hardware_interface::RobotHW class.",
+		  getHardwareInterfaceType().c_str());
+	return false ;
       }
-      break;
-    case EFFORT:
+
+    // Get a pointer to the joint effort control interface
+    effort_iface_ = robot_hw->get<EffortJointInterface>();
+    if (! effort_iface_)
       {
-	// Get a pointer to the joint effort control interface
-	effort_iface_ = robot_hw->get<EffortJointInterface>();
-	if (! effort_iface_)
-	  {
-	    ROS_ERROR("This controller requires a hardware interface of type '%s'."
-		      " Make sure this is registered in the hardware_interface::RobotHW class.",
-		      getHardwareInterfaceType().c_str());
+	ROS_ERROR("This controller requires a hardware interface of type '%s'."
+		  " Make sure this is registered in the hardware_interface::RobotHW class.",
+		  getHardwareInterfaceType().c_str());
 	    return false ;
-	  }
       }
-      break;
-    }
 
     // Get a pointer to the force-torque sensor interface
     ft_iface_ = robot_hw->get<ForceTorqueSensorInterface>();
@@ -131,6 +136,7 @@ namespace sot_controller
 		  internal :: demangledTypeName<ImuSensorInterface>().c_str());
 	return false ;
       }
+
     // Temperature sensor not available in simulation mode
     if (!simulation_mode_)
       {
@@ -147,10 +153,8 @@ namespace sot_controller
 	
       
     // Return which resources are claimed by this controller
-    if (control_mode_==POSITION)
-      pos_iface_->clearClaims();
-    else if (control_mode_==EFFORT)
-      effort_iface_->clearClaims();
+    pos_iface_->clearClaims();
+    effort_iface_->clearClaims();
     
     if (! init ())
       {
@@ -159,24 +163,13 @@ namespace sot_controller
 	return false ;
       }
     ROS_INFO_STREAM("Initialization of interfaces for sot-controller Ok !");
-    if (control_mode_==POSITION)
-      claimed_resources = pos_iface_->getClaims();
-    else if (control_mode_==EFFORT)
-      claimed_resources = effort_iface_->getClaims();
+    claimed_resources = pos_iface_->getClaims();
+    displayClaimedResources(claimed_resources);
+    pos_iface_->clearClaims();
 
-    std::set<std::string >::iterator it_claim;
-    ROS_INFO_STREAM("Size of claimed resources: "<< claimed_resources.size());
-    for (it_claim = claimed_resources.begin(); 
-	 it_claim != claimed_resources.end(); 
-	 ++it_claim)
-      {
-	std::string aclaim = *it_claim;
-	ROS_INFO_STREAM("Claimed by RCSotController: " << aclaim);
-      }
-    if (control_mode_==POSITION)
-      pos_iface_->clearClaims();
-    else     if (control_mode_==EFFORT)
-      effort_iface_->clearClaims();
+    claimed_resources = effort_iface_->getClaims();
+    displayClaimedResources(claimed_resources);
+    effort_iface_->clearClaims();
 
     ROS_INFO_STREAM("Initialization of sot-controller Ok !");
     // success
@@ -362,20 +355,41 @@ namespace sot_controller
     
     for (unsigned int i=0;i<nbDofs_;i++)
       {
-	try 
+	bool notok=true;
+	SotControlMode lcontrol_mode = control_mode_;
+	
+	while (notok)
 	  {
-	    if (control_mode_==POSITION)
-	      joints_[i] = pos_iface_->getHandle(joints_name_[i]);
-	    else if (control_mode_==EFFORT)
-	      joints_[i] = effort_iface_->getHandle(joints_name_[i]);
-	    // throws on failure
-	    ROS_INFO_STREAM("Found joint '" << joints_name_[i]);
-	  }
-	catch (...)
-	  {
-	    ROS_ERROR_STREAM("Could not find joint '" 
-			     << joints_name_[i]);
-	    return false ;
+	    try 
+	      {
+		if (lcontrol_mode==POSITION)
+		  {
+		    joints_[i] = pos_iface_->getHandle(joints_name_[i]);
+		    ROS_INFO_STREAM("Found joint " << joints_name_[i] << " in position.");
+		  }
+		else if (lcontrol_mode==EFFORT)
+		  {
+		    joints_[i] = effort_iface_->getHandle(joints_name_[i]);
+		    ROS_INFO_STREAM("Found joint " << joints_name_[i] << " in effort.");
+		  }
+
+		// throws on failure
+		notok=false;
+	      }
+	    catch (...)
+	      {
+		ROS_ERROR_STREAM("Could not find joint " 
+				 << joints_name_[i]);
+		if (lcontrol_mode==POSITION)
+		  ROS_ERROR_STREAM(" in POSITION");
+		else
+		  ROS_ERROR_STREAM(" in EFFORT");
+		  
+		if (lcontrol_mode==POSITION)
+		  return false ;	
+		else if (lcontrol_mode==EFFORT)
+		  lcontrol_mode = POSITION;
+	      }
 	  }
       }
         
