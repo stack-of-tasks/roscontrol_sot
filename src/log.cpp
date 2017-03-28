@@ -53,7 +53,7 @@ void Log::init(unsigned int nbDofs, unsigned int length)
   struct timeval current;
   gettimeofday(&current,0);
 
-  timeorigin_ = current.tv_sec + 0.000001 * current.tv_usec;
+  timeorigin_ = (double)current.tv_sec + 0.000001 * ((double)current.tv_usec);
 
 }
 
@@ -95,7 +95,7 @@ void Log::record(DataToLog &aDataToLog)
   gettimeofday(&current,0);
 
   StoredData_.timestamp[lrefts_] = 
-    (current.tv_sec + 0.000001 * current.tv_usec) - timeorigin_;
+    ((double)current.tv_sec + 0.000001 * (double)current.tv_usec) - timeorigin_;
 
   lref_ += nbDofs_;
   lrefts_ ++;
