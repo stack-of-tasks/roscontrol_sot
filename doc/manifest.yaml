@@ -1,0 +1,22 @@
+actions: []
+authors: Olivier Stasse <ostasse@laas.fr>
+brief: ''
+bugtracker: ''
+depends:
+- controller_interface
+- roscpp
+- std_msgs
+- sensor_msgs
+- realtime_tools
+- catkin
+- cmake_modules
+- rospy
+- control_msgs
+description: Wrapping the Stack-of-tasks framework in ros-control
+license: BSD
+maintainers: Olivier Stasse <ostasse@laas.fr>
+msgs: []
+package_type: package
+repo_url: ''
+srvs: []
+url: ''
