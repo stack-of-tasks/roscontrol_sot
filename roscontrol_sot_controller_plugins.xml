@@ -1,9 +1,0 @@
-<library path="lib/librcsot_controller">
-
-  <class name="sot_controller/RCSotController" type="sot_controller::RCSotController" base_class_type="controller_interface::ControllerBase">
-    <description>
-       The roscontrol SotController generates whole body motions for your robot.
-    </description>
-  </class>
-</library>
-
