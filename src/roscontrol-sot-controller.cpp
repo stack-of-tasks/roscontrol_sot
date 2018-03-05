@@ -70,14 +70,15 @@ namespace sot_controller
   initRequest (hardware_interface::RobotHW * robot_hw, 
 	       ros::NodeHandle &robot_nh,
 	       ros::NodeHandle &controller_nh,
-	       std::set<std::string> & claimed_resources)
+	       controller_interface::ControllerBase::ClaimedResources & claimed_resources)
   {
     /// Read the parameter server
     if (!readParams(robot_nh))
       return false;
 
     /// Create ros control interfaces to hardware
-    if (!initInterfaces(robot_hw,robot_nh,controller_nh,claimed_resources))
+    std::set<std::string> lclaimed_resources;
+    if (!initInterfaces(robot_hw,robot_nh,controller_nh,lclaimed_resources))
       return false;
 
     /// Create SoT
@@ -118,15 +119,6 @@ namespace sot_controller
 	    return false ;
       }
 
-    // Get a pointer to the force-torque sensor interface
-    ft_iface_ = robot_hw->get<ForceTorqueSensorInterface>();
-    if (! ft_iface_ )
-      {
-	ROS_ERROR("This controller requires a hardware interface of type '%s '. " 
-		  " Make sure this is registered inthe hardware_interface::RobotHW class.",
-		  internal :: demangledTypeName<ForceTorqueSensorInterface>().c_str());
-	return false ;
-      }
     // Get a pointer to the IMU sensor interface
     imu_iface_ = robot_hw->get<ImuSensorInterface>();
     if (! imu_iface_)
@@ -137,20 +129,6 @@ namespace sot_controller
 	return false ;
       }
 
-    // Temperature sensor not available in simulation mode
-    if (!simulation_mode_)
-      {
-	// Get a pointer to the actuator temperature sensor interface
-	act_temp_iface_ = robot_hw->get<ActuatorTemperatureSensorInterface>();
-	if (!act_temp_iface_)
-	  {
-	    ROS_ERROR("This controller requires a hardware interface of type '%s'."
-		      " Make sure this is registered in the hardware_interface::RobotHW class.",
-		      internal :: demangledTypeName<ActuatorTemperatureSensorInterface>().c_str());
-	    return false ;	  
-	  }
-      }
-	
       
     // Return which resources are claimed by this controller
     pos_iface_->clearClaims();
@@ -186,8 +164,6 @@ namespace sot_controller
     if (!initIMU())
       return false;
     if (!initForceSensors())
-      return false;
-    if (!initTemperatureSensors())
       return false;
 
     // Initialize ros node.
@@ -426,25 +402,6 @@ namespace sot_controller
     return true;
   }
 
-  bool RCSotController::
-  initTemperatureSensors()
-  {
-    if (!simulation_mode_)
-      {
-	// get temperature sensors names
-	const std::vector<std::string>& act_temp_iface_names = act_temp_iface_->getNames();
-	ROS_INFO("Actuator temperature sensors: %ld",act_temp_iface_names.size() ); 
-	
-	for (unsigned i=0; i <act_temp_iface_names.size(); i++)
-	  ROS_INFO("Got sensor %s", act_temp_iface_names[i].c_str());
-	for (unsigned i=0; i <act_temp_iface_names.size(); i++){
-	  // sensor handle on actuator temperature
-	  act_temp_sensors_.push_back(act_temp_iface_->getHandle(act_temp_iface_names[i]));
-	}
-      }
-
-    return true;
-  }
   
   void RCSotController::
   fillSensorsIn(std::string &title, std::vector<double> & data)
@@ -469,12 +426,8 @@ namespace sot_controller
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
 	DataOneIter_.motor_angle[idJoint] = joints_[idJoint].getPosition();
-	if (!simulation_mode_)
-	  DataOneIter_.joint_angle[idJoint] = joints_[idJoint].getAbsolutePosition();
 
 	DataOneIter_.velocities[idJoint] = joints_[idJoint].getVelocity();
-	if (!simulation_mode_)
-	  DataOneIter_.torques[idJoint] = joints_[idJoint].getTorqueSensor();
 	DataOneIter_.motor_currents[idJoint] = joints_[idJoint].getEffort();
       }
     
@@ -563,25 +516,6 @@ namespace sot_controller
     fillSensorsIn(alabel,DataOneIter_.force_sensors);
   }
 
-  void RCSotController::
-  fillTempSensors()
-  {
-    if (!simulation_mode_)
-      {
-	for(unsigned int idFS=0;idFS<act_temp_sensors_.size();idFS++)
-	  {
-	    DataOneIter_.temperatures[idFS]=  act_temp_sensors_[idFS].getValue();
-	  }
-      }
-    else
-      {
-	for(unsigned int idFS=0;idFS<nbDofs_;idFS++)
-	  DataOneIter_.temperatures[idFS]=  0.0;
-      }
-
-    std::string alabel("act-temp");
-    fillSensorsIn(alabel,DataOneIter_.temperatures);
-  }
 
   void RCSotController::
   fillSensors()
@@ -589,7 +523,6 @@ namespace sot_controller
     fillJoints();
     fillImu();
     fillForceSensors();
-    fillTempSensors();
   }
   
   void RCSotController::

@@ -39,7 +39,6 @@
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
-#include <pal_hardware_interfaces/actuator_temperature_interface.h>
 
 #include <dynamic_graph_bridge/sot_loader_basic.hh>
 
@@ -76,11 +75,7 @@ namespace sot_controller
 
     /// \brief Vector of 6D force sensor.
     std::vector<hardware_interface::ForceTorqueSensorHandle> ft_sensors_;
-    
-    /// \brief Vector of temperature sensors for the actuators.
-    std::vector<hardware_interface::ActuatorTemperatureSensorHandle> 
-    act_temp_sensors_;
-    
+        
     /// \brief Interface to the joints controlled in position.
     hardware_interface::PositionJointInterface * pos_iface_;
 
@@ -93,9 +88,6 @@ namespace sot_controller
     /// \brief Interface to the sensors (Force).
     hardware_interface::ForceTorqueSensorInterface* ft_iface_;
     
-    /// \brief Interface to the actuator temperature sensor.
-    hardware_interface::ActuatorTemperatureSensorInterface  * act_temp_iface_;
-
     /// @}
 
     /// \brief Log
@@ -130,7 +122,8 @@ namespace sot_controller
     bool initRequest (hardware_interface::RobotHW * robot_hw, 
 		      ros::NodeHandle &robot_nh,
 		      ros::NodeHandle &controller_nh,
-		      std::set<std::string> & claimed_resources);
+		      controller_interface::ControllerBase::ClaimedResources &
+		      claimed_resources);
 
     /// \brief Display claimed resources
     void displayClaimedResources(std::set<std::string> & claimed_resources);
@@ -161,8 +154,6 @@ namespace sot_controller
     bool initIMU();
     /// Initialize the hardware interface accessing the force sensors.
     bool initForceSensors();
-    /// Initialize the hardware interface accessing the temperature sensors.
-    bool initTemperatureSensors();
 
     ///@{ \name Read the parameter server
     /// \brief Entry point
@@ -201,8 +192,6 @@ namespace sot_controller
     void fillImu();
     /// Read the force sensors
     void fillForceSensors();
-    /// Read the temperature sensors
-    void fillTempSensors();
     /// Entry point for reading all the sensors .
     void fillSensors();
     ///@}
