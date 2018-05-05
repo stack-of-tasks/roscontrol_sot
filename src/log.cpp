@@ -8,6 +8,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 using namespace rc_sot_system;
@@ -29,6 +30,7 @@ void DataToLog::init(unsigned int nbDofs,long int length)
   force_sensors.resize(4*6*length);
   temperatures.resize(nbDofs*length);
   timestamp.resize(length);
+  duration.resize(length);
 
   for(unsigned int i=0;i<nbDofs*length;i++)
     { motor_angle[i] = joint_angle[i] = 
@@ -97,6 +99,8 @@ void Log::record(DataToLog &aDataToLog)
   StoredData_.timestamp[lrefts_] = 
     ((double)current.tv_sec + 0.000001 * (double)current.tv_usec) - timeorigin_;
 
+  StoredData_.duration[lrefts_] = time_stop_it_ - time_start_it_;
+    
   lref_ += nbDofs_;
   lrefts_ ++;
   if (lref_>=nbDofs_*length_)
@@ -104,6 +108,25 @@ void Log::record(DataToLog &aDataToLog)
       lref_=0;
       lrefts_=0;
     }
+}
+
+void Log::start_it()
+{
+  struct timeval current;
+  gettimeofday(&current,0);
+
+  time_start_it_ = 
+    ((double)current.tv_sec + 0.000001 * (double)current.tv_usec) - timeorigin_;
+  
+}
+
+void Log::stop_it()
+{
+  struct timeval current;
+  gettimeofday(&current,0);
+
+  time_stop_it_ = 
+    ((double)current.tv_sec + 0.000001 * (double)current.tv_usec) - timeorigin_;
 }
 
 void Log::save(std::string &fileName)
@@ -130,7 +153,10 @@ void Log::save(std::string &fileName)
 
   suffix = "-temperatures.log";
   saveVector(fileName,suffix,StoredData_.temperatures, nbDofs_);
-  
+
+  suffix = "-duration.log";
+  saveVector(fileName,suffix,StoredData_.duration, 1);
+
 }
 
 void Log::saveVector(std::string &fileName,std::string &suffix,
@@ -142,6 +168,7 @@ void Log::saveVector(std::string &fileName,std::string &suffix,
   oss << suffix.c_str();
   std::string actualFileName= oss.str();
   ofstream aof(actualFileName.c_str());
+  aof << std::setprecision(12) << std::setw(12) << std::setfill('0');
   if (aof.is_open())
     {
       for(unsigned long int i=0;i<length_;i++)

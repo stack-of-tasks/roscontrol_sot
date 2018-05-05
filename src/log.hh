@@ -37,6 +37,8 @@ namespace rc_sot_system {
 
     // Timestamp
     std::vector<double> timestamp;
+    // Duration
+    std::vector<double> duration;
 
     DataToLog();
     void init(unsigned int nbDofs, long int length);
@@ -62,7 +64,8 @@ namespace rc_sot_system {
     DataToLog StoredData_;
 
     double timeorigin_;
-
+    double time_start_it_;
+    double time_stop_it_;
 
     // Save one vector of information.
     void saveVector(std::string &filename, 
@@ -78,7 +81,8 @@ namespace rc_sot_system {
     void record(DataToLog &aDataToLog);
 
     void save(std::string &fileName);
-  
+    void start_it();
+    void stop_it();
 
   };
 }

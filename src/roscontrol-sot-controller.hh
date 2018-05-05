@@ -39,8 +39,11 @@
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
+#include <pal_hardware_interfaces/actuator_temperature_interface.h>
 
 #include <dynamic_graph_bridge/sot_loader_basic.hh>
+#include <ros/ros.h>
+#include <control_toolbox/pid.h>
 
 #include "log.hh"
 
@@ -48,11 +51,37 @@ namespace sot_controller
 {
   enum SotControlMode { POSITION, EFFORT};
 
+  class XmlrpcHelperException : public ros::Exception
+  {
+  public:
+    XmlrpcHelperException(const std::string& what)
+      : ros::Exception(what) {}
+  };
+
+  
+  struct EffortControlPDMotorControlData
+  {
+    control_toolbox::Pid pid_controller;
+
+    //double p_gain,d_gain,i_gain;
+    double prev;
+    double vel_prev;
+    double des_pos;
+    double integ_err;
+
+    EffortControlPDMotorControlData();
+    //    void read_from_xmlrpc_value(XmlRpc::XmlRpcValue &aXRV);
+    void read_from_xmlrpc_value(const std::string &prefix);
+  };
+
   /**
      This class encapsulates the Stack of Tasks inside the ros-control infra-structure.
      
    */
-  class RCSotController : public controller_interface::ControllerBase,
+  namespace lhi = hardware_interface;
+  namespace lci = controller_interface;
+  
+  class RCSotController : public lci::ControllerBase,
 			       SotLoaderBasic
   {
     
@@ -67,27 +96,34 @@ namespace sot_controller
     /// @{ \name Ros-control related fields
     
     /// \brief Vector of joint handles.
-    std::vector<hardware_interface::JointHandle> joints_;
+    std::vector<lhi::JointHandle> joints_;
     std::vector<std::string> joints_name_;
 
     /// \brief Vector towards the IMU.
-    std::vector<hardware_interface::ImuSensorHandle> imu_sensor_;
+    std::vector<lhi::ImuSensorHandle> imu_sensor_;
 
     /// \brief Vector of 6D force sensor.
-    std::vector<hardware_interface::ForceTorqueSensorHandle> ft_sensors_;
-        
+    std::vector<lhi::ForceTorqueSensorHandle> ft_sensors_;
+    
+    /// \brief Vector of temperature sensors for the actuators.
+    std::vector<lhi::ActuatorTemperatureSensorHandle> 
+    act_temp_sensors_;
+    
     /// \brief Interface to the joints controlled in position.
-    hardware_interface::PositionJointInterface * pos_iface_;
+    lhi::PositionJointInterface * pos_iface_;
 
     /// \brief Interface to the joints controlled in force.
-    hardware_interface::EffortJointInterface * effort_iface_;
+    lhi::EffortJointInterface * effort_iface_;
     
     /// \brief Interface to the sensors (IMU).
-    hardware_interface::ImuSensorInterface* imu_iface_;
+    lhi::ImuSensorInterface* imu_iface_;
 
     /// \brief Interface to the sensors (Force).
-    hardware_interface::ForceTorqueSensorInterface* ft_iface_;
+    lhi::ForceTorqueSensorInterface* ft_iface_;
     
+    /// \brief Interface to the actuator temperature sensor.
+    lhi::ActuatorTemperatureSensorInterface  * act_temp_iface_;
+
     /// @}
 
     /// \brief Log
@@ -101,7 +137,12 @@ namespace sot_controller
 
     /// \brief The robot can controlled in effort or position mode (default).
     SotControlMode control_mode_;
-    
+
+   
+    /// \brief Implement a PD controller for the robot when the dynamic graph
+    /// is not on.
+    std::map<std::string,EffortControlPDMotorControlData> effort_mode_pd_motors_;
+ 
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
     /// * motor-angles
@@ -111,22 +152,24 @@ namespace sot_controller
     /// ros-control quantities for control are:
     /// * joints
     /// * torques
-    std::map<std::string,std::string> mapFromRCToSotDevice;
+    std::map<std::string,std::string> mapFromRCToSotDevice_;
 
+    /// To be able to subsample control period.
+    double accumulated_time_;
+    
   public :
 
     RCSotController ();
 
     /// \brief Read the configuration files, 
     /// claims the request to the robot and initialize the Stack-Of-Tasks.
-    bool initRequest (hardware_interface::RobotHW * robot_hw, 
+    bool initRequest (lhi::RobotHW * robot_hw, 
 		      ros::NodeHandle &robot_nh,
 		      ros::NodeHandle &controller_nh,
-		      controller_interface::ControllerBase::ClaimedResources &
-		      claimed_resources);
+		      ClaimedResources & claimed_resources);
 
     /// \brief Display claimed resources
-    void displayClaimedResources(std::set<std::string> & claimed_resources);
+    void displayClaimedResources(ClaimedResources & claimed_resources);
 
     /// \brief Claims
     bool init();
@@ -143,10 +186,10 @@ namespace sot_controller
 
   protected:
     /// Initialize the roscontrol interfaces
-    bool initInterfaces(hardware_interface::RobotHW * robot_hw,
+    bool initInterfaces(lhi::RobotHW * robot_hw,
 			ros::NodeHandle &,
 			ros::NodeHandle &,
-			std::set<std::string> & claimed_resources);
+			ClaimedResources & claimed_resources);
 
     /// Initialize the hardware interface using the joints.
     bool initJoints();
@@ -154,6 +197,8 @@ namespace sot_controller
     bool initIMU();
     /// Initialize the hardware interface accessing the force sensors.
     bool initForceSensors();
+    /// Initialize the hardware interface accessing the temperature sensors.
+    bool initTemperatureSensors();
 
     ///@{ \name Read the parameter server
     /// \brief Entry point
@@ -173,6 +218,11 @@ namespace sot_controller
     /// \brief Read the control mode.
     bool readParamsControlMode(ros::NodeHandle & robot_nh);
 
+    /// \brief Read the PID information of the robot in effort mode.
+    bool readParamsEffortControlPDMotorControlData(ros::NodeHandle &robot_nh);
+
+    /// \brief Read the control period.
+    bool readParamsdt(ros::NodeHandle & robot_nh);
     ///@}
 
     /// \brief Fill the SoT map structures
@@ -192,6 +242,8 @@ namespace sot_controller
     void fillImu();
     /// Read the force sensors
     void fillForceSensors();
+    /// Read the temperature sensors
+    void fillTempSensors();
     /// Entry point for reading all the sensors .
     void fillSensors();
     ///@}
@@ -206,6 +258,9 @@ namespace sot_controller
     /// Map of control values
     std::map<std::string,dgs::ControlValues> controlValues_;
 
+    /// Control period
+    double dt_;
+    
     /// \brief Command send to motors
     /// Depending on control_mode it can be either
     /// position control or torque control.
