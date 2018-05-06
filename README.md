@@ -51,7 +51,7 @@ This ros-control plugin connect to the robot (or simulated robot) by requesting 
 5. cmd-position: Command for the joint positions
 6. cmd-effort: Command for the joint torques
 
-For instance the map for a robot which maps __cmd-position__ to __joints__ and __cmd-effort__ to __effort__ in its device will hae
+For instance the map for a robot which maps __cmd-position__ to __joints__ and __cmd-effort__ to __effort__ in its device will have
 have the following lines in its param file:
 ```
 map_rc_to_sot_device: { motor-angles: motor-angles ,
