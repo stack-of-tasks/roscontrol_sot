@@ -5,7 +5,7 @@ variables:
   NAMESPACE: pyrene-dev
   PROJECT: roscontrol_sot
   REGISTRY: gepgitlab.laas.fr:4567
-  IMAGE: "${REGISTRY}/${NAMESPACE}/talos-metapkg-ros-control-sot"
+  IMAGE: "${REGISTRY}/${NAMESPACE}/talos_metapkg_ros_control_sot"
   CCACHE_BASEDIR: "${CI_PROJECT_DIR}"
   CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
 cache:
