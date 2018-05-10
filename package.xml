@@ -44,6 +44,7 @@
   <build_depend>controller_interface</build_depend>
   <build_depend>cmake_modules</build_depend>
   <build_depend>dynamic_graph_bridge</build_depend>
+  <build_depend>pal_hardware_interfaces</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>control_msgs</run_depend>
@@ -56,6 +57,7 @@
   <run_depend>cmake_modules</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>dynamic_graph_bridge</run_depend>
+  <run_depend>pal_hardware_interfaces</run_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <controller_interface plugin="${prefix}/config/roscontrol_sot_controller_plugins.xml"/>
