@@ -77,6 +77,19 @@ robotpkg-roscontrol-sot-dubnium:
     - cd build
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/ccache
-    - apt-get update
-    - apt-get install -y ros-indigo-twist-mux ros-indigo-joy-teleop ros-indigo-moveit-ros-move-group  ros-indigo-humanoid-nav-msgs ros-indigo-four-wheel-steering-msgs
+  script:
+    - cd /root/robotpkg
+    - git pull
+    - cd /root/robotpkg/wip
+    - git pull
+    - cd /root/robotpkg/wip/roscontrol-sot
+    - dpkg --purge robotpkg-talos-pal-hardware-interfaces robotpkg-talos-ros-control robotpkg-talos-ros-controllers
+    - echo "MASTER_REPOSITORY = git ${CI_PROJECT_DIR}" >> Makefile
+    - echo "REPOSITORY.roscontrol-sot = git ${CI_PROJECT_DIR}" >> /opt/openrobots/etc/robotpkg.conf
+    - echo "ACCEPTABLE_LICENSES+=pal-license" >> /opt/openrobots/etc/robotpkg.conf
+    - make checkout
+    - make install
+    - cd work.*/${PROJECT}*/
+  except:
+    - gh-pages    
   image: ${IMAGE}:dubnium
