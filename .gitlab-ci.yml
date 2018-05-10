@@ -59,6 +59,7 @@ robotpkg-roscontrol-sot-16.04:
     - cd /root/robotpkg/wip
     - git pull
     - cd /root/robotpkg/wip/roscontrol-sot
+    - dpkg --purge robotpkg-talos-pal-hardware-interfaces robotpkg-talos-ros-control robotpkg-talos-ros-controllers
     - echo "MASTER_REPOSITORY = git ${CI_PROJECT_DIR}" >> Makefile
     - echo "REPOSITORY.roscontrol-sot = git ${CI_PROJECT_DIR}" >> /opt/openrobots/etc/robotpkg.conf
     - echo "ACCEPTABLE_LICENSES+=pal-license" >> /opt/openrobots/etc/robotpkg.conf
