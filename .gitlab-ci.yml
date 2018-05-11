@@ -85,6 +85,7 @@ robotpkg-roscontrol-sot-dubnium:
     - cd /root/robotpkg/wip/roscontrol-sot
     - dpkg --purge robotpkg-talos-pal-hardware-interfaces robotpkg-talos-ros-control robotpkg-talos-ros-controllers
     - export ROS_PACKAGE_PATH=/opt/pal/dubnium/share:$ROS_PACKAGE_PATH
+    - export PKG_CONFIG_PATH=/opt/pal/dubnium/lib/pkgconfig:/opt/ros/indigo/lib/pkgconfig:/opt/openrobots/lib/pkgconfig
     - echo "MASTER_REPOSITORY = git ${CI_PROJECT_DIR}" >> Makefile
     - echo "REPOSITORY.roscontrol-sot = git ${CI_PROJECT_DIR}" >> /opt/openrobots/etc/robotpkg.conf
     - echo "ACCEPTABLE_LICENSES+=pal-license" >> /opt/openrobots/etc/robotpkg.conf
