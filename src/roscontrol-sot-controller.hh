@@ -74,6 +74,9 @@ namespace sot_controller
     void read_from_xmlrpc_value(const std::string &prefix);
   };
 
+#ifndef CONTROLLER_INTERFACE_KINETIC
+  typedef std::set<std::string> ClaimedResources;
+#endif 
   /**
      This class encapsulates the Stack of Tasks inside the ros-control infra-structure.
      
