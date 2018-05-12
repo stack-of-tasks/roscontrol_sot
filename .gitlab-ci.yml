@@ -90,6 +90,7 @@ robotpkg-roscontrol-sot-dubnium:
     - echo "REPOSITORY.roscontrol-sot = git ${CI_PROJECT_DIR}" >> /opt/openrobots/etc/robotpkg.conf
     - echo "ACCEPTABLE_LICENSES+=pal-license" >> /opt/openrobots/etc/robotpkg.conf
     - echo "CMAKE_CXX_FLAGS+= -I/opt/pal/dubnium/include" >> /opt/openrobots/etc/robotpkg.conf
+    - echo "PKG_CONFIG_PATH=/opt/pal/dubnium" >> /opt/openrobots/etc/robotpkg.conf
     - make checkout
     - make install
     - cd work.*/${PROJECT}*/
