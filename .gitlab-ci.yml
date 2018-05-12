@@ -84,6 +84,8 @@ robotpkg-roscontrol-sot-dubnium:
     - git pull
     - cd /root/robotpkg/wip/roscontrol-sot
     - dpkg --purge robotpkg-talos-pal-hardware-interfaces robotpkg-talos-ros-control robotpkg-talos-ros-controllers
+    - dpkg --purge ros-indigo-ros-control ros-indigo-controller-manager-tests ros-indigo-controller-manager ros-indigo-controller-interface
+    - dpkg --purge ros-indigo-joint-limits-interface ros-indigo-hardware-interface
     - export ROS_PACKAGE_PATH=/opt/pal/dubnium/share:$ROS_PACKAGE_PATH
     - export PKG_CONFIG_PATH=/opt/pal/dubnium/lib/pkgconfig:/opt/ros/indigo/lib/pkgconfig:/opt/openrobots/lib/pkgconfig
     - echo "MASTER_REPOSITORY = git ${CI_PROJECT_DIR}" >> Makefile

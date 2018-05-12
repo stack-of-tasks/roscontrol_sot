@@ -226,6 +226,8 @@ namespace sot_controller
 	return false ;
       }
     ROS_INFO_STREAM("Initialization of interfaces for sot-controller Ok !");
+
+#ifdef CONTROLLER_INTERFACE_KINETIC
     hardware_interface::InterfaceResources iface_res;
     iface_res.hardware_interface = hardware_interface::internal::demangledTypeName<PositionJointInterface>();
     iface_res.resources = pos_iface_->getClaims();
@@ -240,6 +242,15 @@ namespace sot_controller
     
     displayClaimedResources(claimed_resources);
     effort_iface_->clearClaims();
+#else
+    claimed_resources = pos_iface_->getClaims();
+    displayClaimedResources(claimed_resources);
+    pos_iface_->clearClaims();
+
+    claimed_resources = effort_iface_->getClaims();
+    displayClaimedResources(claimed_resources);
+    effort_iface_->clearClaims();
+#endif    
 
     ROS_INFO_STREAM("Initialization of sot-controller Ok !");
     // success
