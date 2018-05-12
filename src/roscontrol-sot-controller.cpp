@@ -74,7 +74,8 @@ namespace sot_controller
   void RCSotController::
   displayClaimedResources(ClaimedResources & claimed_resources)
   {
-    std::vector<hardware_interface::InterfaceResources>::iterator it_claim;
+#ifdef CONTROLLER_INTERFACE_KINETIC
+    ClaimedResources::iterator it_claim;
     ROS_INFO_STREAM("Size of claimed resources: "<< claimed_resources.size());
     for (it_claim = claimed_resources.begin(); 
 	 it_claim != claimed_resources.end(); 
@@ -93,6 +94,17 @@ namespace sot_controller
 	  }
 	    
       }
+#else
+    std::set<std::string >::iterator it_claim;
+    ROS_INFO_STREAM("Size of claimed resources: "<< claimed_resources.size());
+    for (it_claim = claimed_resources.begin();
+	 it_claim != claimed_resources.end();
+	 ++it_claim)
+      {
+	std::string aclaim = *it_claim;
+	ROS_INFO_STREAM("Claimed by RCSotController: " << aclaim);
+      }
+#endif
   }
 
   bool RCSotController::
