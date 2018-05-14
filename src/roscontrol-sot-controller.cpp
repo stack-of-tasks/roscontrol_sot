@@ -50,7 +50,7 @@ namespace sot_controller
   EffortControlPDMotorControlData::EffortControlPDMotorControlData()
   {
     prev = 0.0; vel_prev = 0.0; des_pos=0.0;
-    integ_err=0.0;
+    integ_err=0.0; 
   }
   
   void EffortControlPDMotorControlData::read_from_xmlrpc_value
@@ -66,7 +66,8 @@ namespace sot_controller
     type_name_("RCSotController"),
     simulation_mode_(false),
     control_mode_(POSITION),
-    accumulated_time_(0.0)
+    accumulated_time_(0.0),
+    jitter_(0.0)
   {
     RESETDEBUG4();
   }
@@ -443,6 +444,13 @@ namespace sot_controller
   bool RCSotController::
   readParamsdt(ros::NodeHandle &robot_nh)
   {
+    /// Reading the jitter is optional but it is a very good idea.
+    if (robot_nh.hasParam("/sot_controller/jitter"))
+      {
+	robot_nh.getParam("/sot_controller/jitter",jitter_);
+	ROS_INFO_STREAM("jitter: " << jitter_);
+      }
+
     /// Read /sot_controller/dt to know what is the control period
     if (robot_nh.hasParam("/sot_controller/dt"))
       {
@@ -450,6 +458,7 @@ namespace sot_controller
 	ROS_INFO_STREAM("dt: " << dt_);
 	return true;
       }
+
     ROS_ERROR("You need to define a control period in param /sot_controller/dt");
     return false;
   }
@@ -790,6 +799,61 @@ namespace sot_controller
   }
 
   void RCSotController::
+  localStandbyEffortControlMode(const ros::Duration& period)
+  {
+    // ROS_INFO("Compute command for effort mode: %d %d",joints_.size(),effort_mode_pd_motors_.size());
+    for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
+      {
+	std::string joint_name = joints_name_[idJoint];
+	std::map<std::string,EffortControlPDMotorControlData>::iterator
+	  search_ecpd = effort_mode_pd_motors_.find(joint_name);
+             
+	if (search_ecpd!=effort_mode_pd_motors_.end())
+	  {
+	    EffortControlPDMotorControlData & ecpdcdata =
+	      search_ecpd->second;
+	    double vel_err = 0 - joints_[idJoint].getVelocity();
+	    double err = ecpdcdata.des_pos - joints_[idJoint].getPosition();
+            
+	    ecpdcdata.integ_err +=err;
+	    
+	    double local_command = ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
+	    // Apply command
+	    control_toolbox::Pid::Gains gains = ecpdcdata.pid_controller.getGains();
+	    //ROS_INFO("command: %d %s %f %f (%f %f %f)",idJoint, joints_name_[idJoint].c_str(),
+	    //local_command, DataOneIter_.motor_angle[idJoint],
+	    //gains.p_gain_,gains.d_gain_, gains.i_gain_);
+	    joints_[idJoint].setCommand(local_command);
+            
+	    // Update previous value.
+	    ecpdcdata.prev = DataOneIter_.motor_angle[idJoint];
+	  }
+      }
+  }
+
+  void RCSotController::
+  localStandbyPositionControlMode()
+  {
+    /// Iterate over all the joints
+    for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
+      {
+	/// Find the joint
+	std::string joint_name = joints_name_[idJoint];
+	/// Find the related data
+	std::map<std::string,EffortControlPDMotorControlData>::iterator
+	  search_ecpd = effort_mode_pd_motors_.find(joint_name);
+	
+	if (search_ecpd!=effort_mode_pd_motors_.end())
+	  {
+	    EffortControlPDMotorControlData & ecpdcdata =
+	      search_ecpd->second;
+	    /// Control the joint accordingly
+	    joints_[idJoint].setCommand(ecpdcdata.des_pos);
+	  }
+      }
+  }
+  
+  void RCSotController::
   update(const ros::Time&, const ros::Duration& period)
    {
     // Do not send any control if the dynamic graph is not started
@@ -798,7 +862,7 @@ namespace sot_controller
        try
          {
 	   double periodInSec = period.toSec();
-	   if (periodInSec+accumulated_time_>dt_)
+	   if (periodInSec+accumulated_time_>dt_-jitter_)
 	     {
 	       one_iteration();
 	       accumulated_time_ = 0.0;
@@ -824,36 +888,9 @@ namespace sot_controller
       // But in effort mode it means that we are sending 0
       // Therefore implements a default PD controller on the system.
       if (control_mode_==EFFORT)
-       {
-         // ROS_INFO("Compute command for effort mode: %d %d",joints_.size(),effort_mode_pd_motors_.size());
-         for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
-           {
-             std::string joint_name = joints_name_[idJoint];
-             std::map<std::string,EffortControlPDMotorControlData>::iterator
-               search_ecpd = effort_mode_pd_motors_.find(joint_name);
-             
-             if (search_ecpd!=effort_mode_pd_motors_.end())
-               {
-                 EffortControlPDMotorControlData & ecpdcdata =
-                   search_ecpd->second;
-                 double vel_err = 0 - joints_[idJoint].getVelocity();
-                 double err = ecpdcdata.des_pos - joints_[idJoint].getPosition();
-                 
-                 ecpdcdata.integ_err +=err;
-
-                 double local_command = ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
-                 // Apply command
-                 control_toolbox::Pid::Gains gains = ecpdcdata.pid_controller.getGains();
-                 //ROS_INFO("command: %d %s %f %f (%f %f %f)",idJoint, joints_name_[idJoint].c_str(),
-                 //local_command, DataOneIter_.motor_angle[idJoint],
-                 //gains.p_gain_,gains.d_gain_, gains.i_gain_);
-                 joints_[idJoint].setCommand(local_command);
-                 
-                 // Update previous value.
-                 ecpdcdata.prev = DataOneIter_.motor_angle[idJoint];
-               }
-           }
-      }
+	localStandbyEffortControlMode(period);
+      else if (control_mode_==POSITION)
+	localStandbyPositionControlMode();
    }
   
   void RCSotController::

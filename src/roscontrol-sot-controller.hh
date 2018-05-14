@@ -159,6 +159,9 @@ namespace sot_controller
 
     /// To be able to subsample control period.
     double accumulated_time_;
+
+    /// Jitter for the subsampling.
+    double jitter_;
     
   public :
 
@@ -251,7 +254,13 @@ namespace sot_controller
     void fillSensors();
     ///@}
     
-
+    ///@{ Control the robot while waiting for the SoT
+    /// Default control in effort.
+    void localStandbyEffortControlMode(const ros::Duration& period);
+    /// Default control in position.
+    void localStandbyPositionControlMode();
+    
+    ///@}
     /// Extract control values to send to the simulator.
     void readControl(std::map<std::string,dgs::ControlValues> &controlValues);
 
