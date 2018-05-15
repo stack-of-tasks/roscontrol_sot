@@ -313,6 +313,54 @@ namespace sot_controller
   }
 
   bool RCSotController::
+  readParamsPositionControlData(ros::NodeHandle &robot_nh)
+  {
+    // Read libname
+    if (robot_nh.hasParam("/sot_controller/position_control_init_pos"))
+      {
+       XmlRpc::XmlRpcValue xml_rpc_pci_pose;
+       robot_nh.getParamCached("/sot_controller/position_control_init_pos",
+                               xml_rpc_pci_pose);
+       
+       ROS_INFO("/sot_controller/position_control_init_pos: %d %d %d\n",
+                xml_rpc_pci_pose.getType(),XmlRpc::XmlRpcValue::TypeArray,XmlRpc::XmlRpcValue::TypeStruct);
+       desired_init_pose_.clear();
+       
+       for (size_t i=0;i<xml_rpc_pci_pose.size();i++)
+         {
+	   XmlRpc::XmlRpcValue xml_rpc_pci_el;
+
+	   ROS_INFO("/sot_controller/position_control_init_pos/ %d: %d %d %d\n",i,
+		    xml_rpc_pci_pose[i].getType(),XmlRpc::XmlRpcValue::TypeArray,XmlRpc::XmlRpcValue::TypeStruct);
+	   
+           if (xml_rpc_pci_pose[i].hasMember("name"))
+             {
+	       std::string local_joint_name = std::string(xml_rpc_pci_pose[i]["name"]);
+	       if (xml_rpc_pci_pose[i].hasMember("name"))
+		 {
+		   double local_des_pose = double(xml_rpc_pci_pose[i]["des_pos"]);
+		   desired_init_pose_[local_joint_name] = local_des_pose;
+		 }
+	       else
+		 {
+		   ROS_INFO("parameter /sot_controller/position_control_init_pos/%d  needs a desired position\n", i );
+		   return false;
+		 }
+	     }
+	   else
+	     {
+	       ROS_INFO("parameter /sot_controller/position_control_init_pos/%d  needs a name\n",i  );
+	       return false;
+	     }
+	 }
+       return true;
+      }
+    ROS_ERROR("No parameter /sot_controller/position_control_init_pos");
+    return false;
+
+  }
+  
+  bool RCSotController::
   readParamsEffortControlPDMotorControlData(ros::NodeHandle &robot_nh)
   {
     // Read libname
@@ -496,7 +544,8 @@ namespace sot_controller
     
     if (control_mode_==EFFORT)
       readParamsEffortControlPDMotorControlData(robot_nh);
-
+    else if (control_mode_==POSITION)
+      readParamsPositionControlData(robot_nh);
     return true;
   }
 
@@ -623,11 +672,11 @@ namespace sot_controller
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
 	DataOneIter_.motor_angle[idJoint] = joints_[idJoint].getPosition();
-	if (!simulation_mode_)
+	//if (!simulation_mode_)
 	  DataOneIter_.joint_angle[idJoint] = joints_[idJoint].getAbsolutePosition();
 
 	DataOneIter_.velocities[idJoint] = joints_[idJoint].getVelocity();
-	if (!simulation_mode_)
+	//if (!simulation_mode_)
 	  DataOneIter_.torques[idJoint] = joints_[idJoint].getTorqueSensor();
 	DataOneIter_.motor_currents[idJoint] = joints_[idJoint].getEffort();
       }
@@ -840,16 +889,17 @@ namespace sot_controller
 	/// Find the joint
 	std::string joint_name = joints_name_[idJoint];
 	/// Find the related data
-	std::map<std::string,EffortControlPDMotorControlData>::iterator
-	  search_ecpd = effort_mode_pd_motors_.find(joint_name);
+	std::map<std::string,double>::iterator
+	  search_ecpd = desired_init_pose_.find(joint_name);
 	
-	if (search_ecpd!=effort_mode_pd_motors_.end())
+	if (search_ecpd!=desired_init_pose_.end())
 	  {
-	    EffortControlPDMotorControlData & ecpdcdata =
-	      search_ecpd->second;
+	    double ecpdcdata = search_ecpd->second;
 	    /// Control the joint accordingly
-	    joints_[idJoint].setCommand(ecpdcdata.des_pos);
+	    joints_[idJoint].setCommand(ecpdcdata);
 	  }
+	else
+	  ROS_ERROR("Unable to find init pose for joint %s", joint_name);
       }
   }
   

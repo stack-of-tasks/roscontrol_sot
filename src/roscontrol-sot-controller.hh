@@ -144,8 +144,11 @@ namespace sot_controller
    
     /// \brief Implement a PD controller for the robot when the dynamic graph
     /// is not on.
-    std::map<std::string,EffortControlPDMotorControlData> effort_mode_pd_motors_;
- 
+    std::map<std::string, EffortControlPDMotorControlData> effort_mode_pd_motors_;
+
+    /// \brief Give the desired position when the dynamic graph is not on.
+    std::map<std::string, double> desired_init_pose_;
+    
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
     /// * motor-angles
@@ -226,6 +229,9 @@ namespace sot_controller
 
     /// \brief Read the PID information of the robot in effort mode.
     bool readParamsEffortControlPDMotorControlData(ros::NodeHandle &robot_nh);
+
+    /// \brief Read the desired initial pose of the robot in position mode.
+    bool readParamsPositionControlData(ros::NodeHandle &robot_nh);
 
     /// \brief Read the control period.
     bool readParamsdt(ros::NodeHandle & robot_nh);
