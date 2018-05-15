@@ -330,7 +330,7 @@ namespace sot_controller
          {
 	   XmlRpc::XmlRpcValue xml_rpc_pci_el;
 
-	   ROS_INFO("/sot_controller/position_control_init_pos/ %d: %d %d %d\n",i,
+	   ROS_INFO("/sot_controller/position_control_init_pos/ %ld: %d %d %d\n",i,
 		    xml_rpc_pci_pose[i].getType(),XmlRpc::XmlRpcValue::TypeArray,XmlRpc::XmlRpcValue::TypeStruct);
 	   
            if (xml_rpc_pci_pose[i].hasMember("name"))
@@ -343,13 +343,13 @@ namespace sot_controller
 		 }
 	       else
 		 {
-		   ROS_INFO("parameter /sot_controller/position_control_init_pos/%d  needs a desired position\n", i );
+		   ROS_INFO("parameter /sot_controller/position_control_init_pos/%ld  needs a desired position\n", i );
 		   return false;
 		 }
 	     }
 	   else
 	     {
-	       ROS_INFO("parameter /sot_controller/position_control_init_pos/%d  needs a name\n",i  );
+	       ROS_INFO("parameter /sot_controller/position_control_init_pos/%ld  needs a name\n",i  );
 	       return false;
 	     }
 	 }
@@ -899,7 +899,7 @@ namespace sot_controller
 	    joints_[idJoint].setCommand(ecpdcdata);
 	  }
 	else
-	  ROS_ERROR("Unable to find init pose for joint %s", joint_name);
+	  ROS_ERROR("Unable to find init pose for joint %s", joint_name.c_str());
       }
   }
   
