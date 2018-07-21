@@ -45,6 +45,10 @@
 #include <ros/ros.h>
 #include <control_toolbox/pid.h>
 
+/** URDF DOM*/
+#include <urdf_parser/urdf_parser.h>
+
+/* Local header */
 #include "log.hh"
 
 namespace sot_controller 
@@ -165,7 +169,10 @@ namespace sot_controller
 
     /// Jitter for the subsampling.
     double jitter_;
-    
+
+    /// URDF model of the robot.
+    urdf::ModelInterfaceSharedPtr modelURDF_;    
+
   public :
 
     RCSotController ();
@@ -287,6 +294,8 @@ namespace sot_controller
     /// One iteration: read sensor, compute the control law, apply control.
     void one_iteration();
 
+    /// Read URDF model from /robot_description parameter.
+    bool readUrdf(ros::NodeHandle &robot_nh);
   };
 }
 

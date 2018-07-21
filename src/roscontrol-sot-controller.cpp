@@ -7,6 +7,7 @@
 #include <pluginlib/class_list_macros.h>
 #include "roscontrol-sot-controller.hh"
 
+#include<ros/console.h>
 
 #if DEBUG
 #define ODEBUG(x) std::cout << x << std::endl
@@ -164,55 +165,53 @@ namespace sot_controller
 
     // Get a pointer to the joint position control interface
     pos_iface_ = robot_hw->get<PositionJointInterface>();
-    if (! pos_iface_)
+    if (!pos_iface_)
       {
-	ROS_ERROR("This controller requires a hardware interface of type '%s'."
-		  " Make sure this is registered in the %s::RobotHW class.",
+	ROS_WARN("This controller did not find  a hardware interface of type '%s'."
+		 " Make sure this is registered in the %s::RobotHW class if it is required.",
 		  getHardwareInterfaceType().c_str(), lns.c_str());
-	return false ;
       }
 
     // Get a pointer to the joint effort control interface
     effort_iface_ = robot_hw->get<EffortJointInterface>();
     if (! effort_iface_)
       {
-	ROS_ERROR("This controller requires a hardware interface of type '%s'."
-		  " Make sure this is registered in the %s::RobotHW class.",
-		  getHardwareInterfaceType().c_str(),lns.c_str());
-	    return false ;
+	ROS_WARN("This controller did not find a hardware interface of type '%s'."
+		 " Make sure this is registered in the %s::RobotHW class if it is required.",
+		    getHardwareInterfaceType().c_str(),lns.c_str());
       }
 
     // Get a pointer to the force-torque sensor interface
     ft_iface_ = robot_hw->get<ForceTorqueSensorInterface>();
     if (! ft_iface_ )
       {
-	ROS_ERROR("This controller requires a hardware interface of type '%s '. " 
-		  " Make sure this is registered inthe %s::RobotHW class.",
+	ROS_WARN("This controller did not find a hardware interface of type '%s '. " 
+		 " Make sure this is registered inthe %s::RobotHW class if it is required.",
 		  internal :: demangledTypeName<ForceTorqueSensorInterface>().c_str(),lns.c_str());
-	return false ;
       }
+    
     // Get a pointer to the IMU sensor interface
     imu_iface_ = robot_hw->get<ImuSensorInterface>();
     if (! imu_iface_)
       {
-	ROS_ERROR("This controller requires a hardware interface of type '%s'."
-		  " Make sure this is registered in the %s::RobotHW class.",
-		  internal :: demangledTypeName<ImuSensorInterface>().c_str(),lns.c_str());
-	return false ;
+	ROS_WARN("This controller did not find a hardware interface of type '%s'."
+		 " Make sure this is registered in the %s::RobotHW class if it is required.",
+		    internal :: demangledTypeName<ImuSensorInterface>().c_str(),lns.c_str());
       }
 
     // Temperature sensor not available in simulation mode
     if (!simulation_mode_)
       {
+#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND
 	// Get a pointer to the actuator temperature sensor interface
 	act_temp_iface_ = robot_hw->get<ActuatorTemperatureSensorInterface>();
 	if (!act_temp_iface_)
 	  {
-	    ROS_ERROR("This controller requires a hardware interface of type '%s'."
-		      " Make sure this is registered in the %s::RobotHW class.",
+	    ROS_WARN("This controller did not find a hardware interface of type '%s'."
+		     " Make sure this is registered in the %s::RobotHW class if it is required.",
 		      internal :: demangledTypeName<ActuatorTemperatureSensorInterface>().c_str(),lns.c_str());
-	    return false ;	  
 	  }
+#endif
       }
 	
       
@@ -330,15 +329,17 @@ namespace sot_controller
          {
 	   XmlRpc::XmlRpcValue xml_rpc_pci_el;
 
-	   ROS_INFO("/sot_controller/position_control_init_pos/ %ld: %d %d %d\n",i,
-		    xml_rpc_pci_pose[i].getType(),XmlRpc::XmlRpcValue::TypeArray,XmlRpc::XmlRpcValue::TypeStruct);
+	   ROS_INFO("/sot_controller/position_control_init_pos/ %ld: %ld %d %d\n",i,
+		    xml_rpc_pci_pose[(int)i].getType(),
+		    XmlRpc::XmlRpcValue::TypeArray,
+		    XmlRpc::XmlRpcValue::TypeStruct);
 	   
-           if (xml_rpc_pci_pose[i].hasMember("name"))
+           if (xml_rpc_pci_pose[(int)i].hasMember("name"))
              {
-	       std::string local_joint_name = std::string(xml_rpc_pci_pose[i]["name"]);
-	       if (xml_rpc_pci_pose[i].hasMember("name"))
+	       std::string local_joint_name = std::string(xml_rpc_pci_pose[(int)i]["name"]);
+	       if (xml_rpc_pci_pose[(int)i].hasMember("name"))
 		 {
-		   double local_des_pose = double(xml_rpc_pci_pose[i]["des_pos"]);
+		   double local_des_pose = double(xml_rpc_pci_pose[(int)i]["des_pos"]);
 		   desired_init_pose_[local_joint_name] = local_des_pose;
 		 }
 	       else
@@ -441,8 +442,26 @@ namespace sot_controller
 	robot_nh.getParam("/sot_controller/joint_names",
 			  joints_name_);
 	for(std::vector<std::string>::size_type i=0;i<joints_name_.size();i++)
-	  {ROS_INFO_STREAM("joints_name_[" << i << "]=" << joints_name_[i]);}
-	
+	  {
+	    ROS_INFO_STREAM("joints_name_[" << i << "]=" << joints_name_[i]);
+
+	    if (modelURDF_.use_count())
+	      {
+		urdf::JointConstSharedPtr aJCSP = modelURDF_->getJoint(joints_name_[i]);
+		if (aJCSP.use_count()!=0)
+		  ROS_INFO_STREAM( joints_name_[i] + " found in the robot model" );
+		else
+		  {
+		    ROS_ERROR(" %s not found in the robot model",joints_name_[i]);
+		    return false;
+		  }
+	      }
+	    else
+	      {
+		ROS_ERROR("No robot model loaded in /robot_description");
+		return false;
+	      }
+	  }
       }
     else
       return false;
@@ -510,6 +529,25 @@ namespace sot_controller
     ROS_ERROR("You need to define a control period in param /sot_controller/dt");
     return false;
   }
+
+  bool RCSotController::
+  readUrdf(ros::NodeHandle &robot_nh)
+  {
+    /// Reading the parameter /robot_description which contains the robot
+    /// description
+    if (!robot_nh.hasParam("/robot_description"))
+      {
+	ROS_ERROR("ROS application does not have robot_description");
+	return false;
+      }
+    std::string robot_description_str;
+    
+    robot_nh.getParam("/robot_description",robot_description_str);
+
+    modelURDF_ = urdf::parseURDF(robot_description_str);
+    ROS_INFO("Loaded /robot_description %d",modelURDF_.use_count());
+    return true;
+  }
   
   bool RCSotController::
   readParams(ros::NodeHandle &robot_nh)
@@ -524,6 +562,9 @@ namespace sot_controller
     // Defines if we are in simulation node.
     if (robot_nh.hasParam("/sot_controller/simulation_mode")) 
       simulation_mode_ = true;
+    
+    /// Read URDF file.
+    readUrdf(robot_nh);
     
     /// Calls readParamsJointNames
     // Reads the list of joints to be controlled.
@@ -672,12 +713,15 @@ namespace sot_controller
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
 	DataOneIter_.motor_angle[idJoint] = joints_[idJoint].getPosition();
-	//if (!simulation_mode_)
-	  DataOneIter_.joint_angle[idJoint] = joints_[idJoint].getAbsolutePosition();
 
+#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND
+	DataOneIter_.joint_angle[idJoint] = joints_[idJoint].getAbsolutePosition();
+#endif	  
 	DataOneIter_.velocities[idJoint] = joints_[idJoint].getVelocity();
-	//if (!simulation_mode_)
-	  DataOneIter_.torques[idJoint] = joints_[idJoint].getTorqueSensor();
+
+#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND	
+	DataOneIter_.torques[idJoint] = joints_[idJoint].getTorqueSensor();
+#endif
 	DataOneIter_.motor_currents[idJoint] = joints_[idJoint].getEffort();
       }
     
