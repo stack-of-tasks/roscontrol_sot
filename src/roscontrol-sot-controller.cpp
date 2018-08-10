@@ -120,6 +120,7 @@ namespace sot_controller
       return false;
 
     /// Create ros control interfaces to hardware
+    /// Recalls: init() is called by initInterfaces()
     if (!initInterfaces(robot_hw,robot_nh,controller_nh,claimed_resources))
       return false;
 
@@ -219,7 +220,7 @@ namespace sot_controller
     pos_iface_->clearClaims();
     effort_iface_->clearClaims();
     
-    if (! init ())
+    if (! init())
       {
 	ROS_ERROR("Failed to initialize sot-controller" );
 	std :: cerr << "FAILED LOADING SOT CONTROLLER" << std::endl;
@@ -330,17 +331,21 @@ namespace sot_controller
 	   XmlRpc::XmlRpcValue xml_rpc_pci_el;
 
 	   ROS_INFO("/sot_controller/position_control_init_pos/ %ld: %ld %d %d\n",i,
-		    xml_rpc_pci_pose[(int)i].getType(),
+		    xml_rpc_pci_pose[i].getType(),
 		    XmlRpc::XmlRpcValue::TypeArray,
 		    XmlRpc::XmlRpcValue::TypeStruct);
 	   
-           if (xml_rpc_pci_pose[(int)i].hasMember("name"))
+           if (xml_rpc_pci_pose[i].hasMember("name"))
              {
-	       std::string local_joint_name = std::string(xml_rpc_pci_pose[(int)i]["name"]);
-	       if (xml_rpc_pci_pose[(int)i].hasMember("name"))
+	       std::string local_joint_name =
+		 std::string(xml_rpc_pci_pose[i]["name"]);
+	       
+	       if (xml_rpc_pci_pose[i].hasMember("des_pos"))
 		 {
-		   double local_des_pose = double(xml_rpc_pci_pose[(int)i]["des_pos"]);
+		   double local_des_pose = double(xml_rpc_pci_pose[i]["des_pos"]);
 		   desired_init_pose_[local_joint_name] = local_des_pose;
+		   ROS_INFO("Joint %s has desired position: %f \n",
+			    local_joint_name.c_str(),local_des_pose );
 		 }
 	       else
 		 {
@@ -609,12 +614,14 @@ namespace sot_controller
 		if (lcontrol_mode==POSITION)
 		  {
 		    joints_[i] = pos_iface_->getHandle(joints_name_[i]);
-		    ROS_INFO_STREAM("Found joint " << joints_name_[i] << " in position.");
+		    ROS_INFO_STREAM("Found joint " << joints_name_[i] << " in position "
+				    << i << " " << joints_[i].getName());
 		  }
 		else if (lcontrol_mode==EFFORT)
 		  {
 		    joints_[i] = effort_iface_->getHandle(joints_name_[i]);
-		    ROS_INFO_STREAM("Found joint " << joints_name_[i] << " in effort.");
+		    ROS_INFO_STREAM("Found joint " << joints_name_[i] << " in effort "
+				    << i << " " << joints_[i].getName());
 		  }
 
 		// throws on failure
@@ -675,6 +682,7 @@ namespace sot_controller
   {
     if (!simulation_mode_)
       {
+#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND	
 	// get temperature sensors names
 	const std::vector<std::string>& act_temp_iface_names = act_temp_iface_->getNames();
 	ROS_INFO("Actuator temperature sensors: %ld",act_temp_iface_names.size() ); 
@@ -685,6 +693,7 @@ namespace sot_controller
 	  // sensor handle on actuator temperature
 	  act_temp_sensors_.push_back(act_temp_iface_->getHandle(act_temp_iface_names[i]));
 	}
+#endif	
       }
 
     return true;
@@ -816,10 +825,12 @@ namespace sot_controller
   {
     if (!simulation_mode_)
       {
+#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND
 	for(unsigned int idFS=0;idFS<act_temp_sensors_.size();idFS++)
 	  {
 	    DataOneIter_.temperatures[idFS]=  act_temp_sensors_[idFS].getValue();
 	  }
+#endif
       }
     else
       {
@@ -923,10 +934,12 @@ namespace sot_controller
 	  }
       }
   }
-
+  
   void RCSotController::
   localStandbyPositionControlMode()
   {
+    static bool first_time=true;
+    
     /// Iterate over all the joints
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
@@ -941,10 +954,14 @@ namespace sot_controller
 	    double ecpdcdata = search_ecpd->second;
 	    /// Control the joint accordingly
 	    joints_[idJoint].setCommand(ecpdcdata);
+       	    if (first_time)
+	      ROS_INFO("Control joint %s at %d %f %s\n",joint_name.c_str(),idJoint,
+		       ecpdcdata,joints_[idJoint].getName().c_str());
 	  }
 	else
 	  ROS_ERROR("Unable to find init pose for joint %s", joint_name.c_str());
       }
+    first_time=false;
   }
   
   void RCSotController::
@@ -1016,5 +1033,5 @@ namespace sot_controller
   
 
   PLUGINLIB_EXPORT_CLASS(sot_controller::RCSotController, 
-			 lci::ControllerBase);
+			 lci::ControllerBase)
 }

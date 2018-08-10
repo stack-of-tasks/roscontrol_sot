@@ -112,9 +112,11 @@ namespace sot_controller
     /// \brief Vector of 6D force sensor.
     std::vector<lhi::ForceTorqueSensorHandle> ft_sensors_;
     
+#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND    
     /// \brief Vector of temperature sensors for the actuators.
     std::vector<lhi::ActuatorTemperatureSensorHandle> 
     act_temp_sensors_;
+#endif
     
     /// \brief Interface to the joints controlled in position.
     lhi::PositionJointInterface * pos_iface_;
@@ -128,9 +130,10 @@ namespace sot_controller
     /// \brief Interface to the sensors (Force).
     lhi::ForceTorqueSensorInterface* ft_iface_;
     
+#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND    
     /// \brief Interface to the actuator temperature sensor.
     lhi::ActuatorTemperatureSensorInterface  * act_temp_iface_;
-
+#endif
     /// @}
 
     /// \brief Log
