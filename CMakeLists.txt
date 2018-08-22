@@ -26,6 +26,7 @@ project(roscontrol_sot)
 find_package(PkgConfig REQUIRED)
 
 add_required_dependency(bullet)
+add_required_dependency("urdfdom")
 
 #set(bullet_FOUND 0)
 #pkg_check_modules(bullet REQUIRED bullet)
@@ -119,6 +120,7 @@ target_link_libraries(rcsot_controller
   ${bullet_LIBRARIES}
   )
 
+pkg_config_use_dependency(rcsot_controller urdfdom)
 
 ## Mark executables and/or libraries for installation
 install(TARGETS rcsot_controller DESTINATION lib )
