@@ -150,8 +150,7 @@ namespace sot_controller
 
     /// \brief The robot can controlled in effort or position mode (default).
     SotControlMode control_mode_;
-
-   
+    
     /// \brief Implement a PD controller for the robot when the dynamic graph
     /// is not on.
     std::map<std::string, EffortControlPDMotorControlData> effort_mode_pd_motors_;
@@ -175,6 +174,10 @@ namespace sot_controller
 
     /// Jitter for the subsampling.
     double jitter_;
+
+    /// \brief Verbosity level for ROS messages during initRequest/initialization phase.
+    /// 0: no messages or error 1: info 2: debug
+    bool verbosity_level_;
 
     /// URDF model of the robot.
     urdf::ModelInterfaceSharedPtr modelURDF_;    
@@ -248,6 +251,9 @@ namespace sot_controller
 
     /// \brief Read the control period.
     bool readParamsdt(ros::NodeHandle & robot_nh);
+
+    /// \brief Read verbosity level to display messages mostly during initialization
+    void readParamsVerbosityLevel(ros::NodeHandle &robot_nh);
     ///@}
 
     /// \brief Fill the SoT map structures
