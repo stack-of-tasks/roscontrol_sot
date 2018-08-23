@@ -177,7 +177,7 @@ namespace sot_controller
 
     /// \brief Verbosity level for ROS messages during initRequest/initialization phase.
     /// 0: no messages or error 1: info 2: debug
-    bool verbosity_level_;
+    int verbosity_level_;
 
     /// URDF model of the robot.
     urdf::ModelInterfaceSharedPtr modelURDF_;    
