@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 2.8.3)
 
+set(CXX_DISABLE_WERROR True)
+
 include(cmake/base.cmake)
 include(cmake/ros.cmake)
 include(cmake/GNUInstallDirs.cmake)
@@ -51,7 +53,6 @@ set(PROJECT_DESCRIPTION "Integration of the Stack of Tasks in roscontrol")
 set(PROJECT_NAME roscontrol_sot)
 set(PROJECT_URL "https://github.com/stack-of-tasks/roscontrol_sot")
 
-set(CXX_DISABLE_WERROR False)
 
 include_directories(include ${bullet_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 

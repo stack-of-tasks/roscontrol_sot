@@ -354,7 +354,7 @@ namespace sot_controller
 
     	   /// Display type of XmlRpcValue
     	   if (verbosity_level_>1)
-    	     ROS_INFO("/sot_controller/position_control_init_pos/ %ld: %ld %d %d\n",i,
+    	     ROS_INFO("/sot_controller/position_control_init_pos/ %ld: %d %d %d\n",i,
     		      xml_rpc_pci_pose[i].getType(),
     		      XmlRpc::XmlRpcValue::TypeArray,
     		      XmlRpc::XmlRpcValue::TypeStruct);
@@ -488,7 +488,7 @@ namespace sot_controller
     		  }
     		else
     		  {
-    		    ROS_ERROR(" %s not found in the robot model",joints_name_[i]);
+    		    ROS_ERROR(" %s not found in the robot model",joints_name_[i].c_str());
     		    return false;
     		  }
     	      }
@@ -585,7 +585,7 @@ namespace sot_controller
 
     modelURDF_ = urdf::parseURDF(robot_description_str);
     if (verbosity_level_>0)
-      ROS_INFO("Loaded /robot_description %d",modelURDF_.use_count());
+      ROS_INFO("Loaded /robot_description %ld",modelURDF_.use_count());
     return true;
   }
   
