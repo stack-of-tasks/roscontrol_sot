@@ -332,64 +332,9 @@ namespace sot_controller
   }
 
   bool RCSotController::
-  readParamsPositionControlData(ros::NodeHandle &robot_nh)
+  readParamsPositionControlData(ros::NodeHandle &)
   {
-    // Read libname
-    if (robot_nh.hasParam("/sot_controller/position_control_init_pos"))
-      {
-       XmlRpc::XmlRpcValue xml_rpc_pci_pose;
-       robot_nh.getParamCached("/sot_controller/position_control_init_pos",
-                               xml_rpc_pci_pose);
-       
-       /// Display type of XmlRpcValue
-       if (verbosity_level_>1)
-    	 ROS_INFO("/sot_controller/position_control_init_pos: %d %d %d\n",
-    		  xml_rpc_pci_pose.getType(),XmlRpc::XmlRpcValue::TypeArray,XmlRpc::XmlRpcValue::TypeStruct);
-       
-       desired_init_pose_.clear();
-       
-       for (size_t i=0;i<xml_rpc_pci_pose.size();i++)
-         {
-    	   XmlRpc::XmlRpcValue xml_rpc_pci_el;
-
-    	   /// Display type of XmlRpcValue
-    	   if (verbosity_level_>1)
-    	     ROS_INFO("/sot_controller/position_control_init_pos/ %ld: %d %d %d\n",i,
-    		      xml_rpc_pci_pose[i].getType(),
-    		      XmlRpc::XmlRpcValue::TypeArray,
-    		      XmlRpc::XmlRpcValue::TypeStruct);
-    	   
-           if (xml_rpc_pci_pose[i].hasMember("name"))
-             {
-    	       std::string local_joint_name =
-    		 std::string(xml_rpc_pci_pose[i]["name"]);
-    	       
-    	       if (xml_rpc_pci_pose[i].hasMember("des_pos"))
-    		 {
-    		   double local_des_pose = double(xml_rpc_pci_pose[i]["des_pos"]);
-    		   desired_init_pose_[local_joint_name] = local_des_pose;
-    		   /// Display desired value
-    		   if (verbosity_level_>0)
-    		     ROS_INFO("Joint %s has desired position: %f \n",
-    			      local_joint_name.c_str(),local_des_pose );
-    		 }
-    	       else
-    		 {
-    		   ROS_ERROR("parameter /sot_controller/position_control_init_pos/%ld  needs a desired position\n", i );
-    		   return false;
-    		 }
-    	     }
-    	   else
-    	     {
-    	       ROS_ERROR("parameter /sot_controller/position_control_init_pos/%ld  needs a name\n",i  );
-    	       return false;
-    	     }
-    	 }
-       return true;
-      }
-    ROS_ERROR("No parameter /sot_controller/position_control_init_pos");
     return false;
-
   }
   
   bool RCSotController::
@@ -639,6 +584,7 @@ namespace sot_controller
   {
     // Init Joint Names.
     joints_.resize(joints_name_.size());
+    desired_init_pose_.resize (joints_.size());
     
     for (unsigned int i=0;i<nbDofs_;i++)
       {
@@ -681,6 +627,7 @@ namespace sot_controller
 		else if (lcontrol_mode==EFFORT)
 		  lcontrol_mode = POSITION;
 	      }
+            desired_init_pose_[i] = joints_[i].getPosition();
 	  }
       }
         
@@ -991,25 +938,17 @@ namespace sot_controller
     /// Iterate over all the joints
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
-	/// Find the joint
-	std::string joint_name = joints_name_[idJoint];
-	/// Find the related data
-	std::map<std::string,double>::iterator
-	  search_ecpd = desired_init_pose_.find(joint_name);
-	
-	if (search_ecpd!=desired_init_pose_.end())
-	  {
-	    double ecpdcdata = search_ecpd->second;
-	    /// Control the joint accordingly
-	    joints_[idJoint].setCommand(ecpdcdata);
-	    
-       	    if (first_time)
-	      if (verbosity_level_>1)
-		ROS_INFO("Control joint %s at %d %f %s\n",joint_name.c_str(),idJoint,
-			 ecpdcdata,joints_[idJoint].getName().c_str());
-	  }
-	else
-	  ROS_ERROR("Unable to find init pose for joint %s", joint_name.c_str());
+        /// Find the joint
+        std::string joint_name = joints_name_[idJoint];
+        lhi::JointHandle joint = joints_[idJoint];
+        joint.setCommand(desired_init_pose_[idJoint]);
+
+        assert(joint.getName() == joint_name);
+        if (first_time)
+          if (verbosity_level_>1) {
+            ROS_INFO("Control joint %s (id %d) to %f\n",joint_name.c_str(),idJoint,
+              joint.getPosition());
+          }
       }
     first_time=false;
   }

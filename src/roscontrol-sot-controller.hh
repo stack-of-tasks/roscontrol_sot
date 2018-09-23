@@ -156,7 +156,7 @@ namespace sot_controller
     std::map<std::string, EffortControlPDMotorControlData> effort_mode_pd_motors_;
 
     /// \brief Give the desired position when the dynamic graph is not on.
-    std::map<std::string, double> desired_init_pose_;
+    std::vector<double> desired_init_pose_;
     
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
