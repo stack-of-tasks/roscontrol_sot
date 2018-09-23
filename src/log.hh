@@ -70,7 +70,7 @@ namespace rc_sot_system {
     // Save one vector of information.
     void saveVector(std::string &filename, 
 		    std::string &suffix,
-		    std::vector<double> &avector,
+		    const std::vector<double> &avector,
 		    unsigned int);
 
   public:

@@ -10,6 +10,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include<ros/console.h>
+
 using namespace std;
 using namespace rc_sot_system;
 
@@ -159,35 +161,50 @@ void Log::save(std::string &fileName)
 
 }
 
+inline void writeHeaderToBinaryBuffer (ofstream& of,
+    const unsigned int& nVector,
+    const unsigned int& vectorSize)
+{
+  of.write ((char*)&nVector   , sizeof(unsigned int));
+  of.write ((char*)&vectorSize, sizeof(unsigned int));
+}
+
+inline void writeToBinaryFile (ofstream& of,
+    const double& t, const double& dt,
+    const std::vector<double>& data, const std::size_t& idx, const std::size_t& size)
+{
+  of.write ((char*)&t          ,       sizeof(double));
+  of.write ((char*)&dt         ,       sizeof(double));
+  of.write ((char*)(&data[idx]), size*(sizeof(double)));
+}
+
 void Log::saveVector(std::string &fileName,std::string &suffix,
-		     std::vector<double> &avector,
+		     const std::vector<double> &avector,
 		     unsigned int size)
 {
   ostringstream oss;
   oss << fileName;
   oss << suffix.c_str();
   std::string actualFileName= oss.str();
-  ofstream aof(actualFileName.c_str());
-  aof << std::setprecision(12) << std::setw(12) << std::setfill('0');
+
+  ofstream aof(actualFileName.c_str(), std::ios::binary | std::ios::trunc);
+
+  std::size_t idx = 0;
+  double dt;
   if (aof.is_open())
     {
+      writeHeaderToBinaryBuffer (aof, length_, size+2);
       for(unsigned long int i=0;i<length_;i++)
 	{
-	  // Save timestamp
-	  aof << StoredData_.timestamp[i] << " " ;
-
 	  // Compute and save dt
 	  if (i==0)
-	    aof << StoredData_.timestamp[i] - StoredData_.timestamp[length_-1] << " ";
+            dt = StoredData_.timestamp[i] - StoredData_.timestamp[length_-1];
 	  else
-	    aof << StoredData_.timestamp[i] - StoredData_.timestamp[i-1] << " ";
-
-	  // Save all data
-	  for(unsigned long int datumID=0;datumID<size;datumID++)
-	    aof << avector[i*size+datumID] << " " ;
-
-	  aof << std::endl;
+            dt = StoredData_.timestamp[i] - StoredData_.timestamp[i-1];
+          writeToBinaryFile (aof, StoredData_.timestamp[i], dt, avector, idx, size);
+          idx += size;
 	}
       aof.close();
+      ROS_INFO_STREAM("Wrote log file " << actualFileName);
     }
 }

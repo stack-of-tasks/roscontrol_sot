@@ -126,6 +126,9 @@ pkg_config_use_dependency(rcsot_controller urdfdom)
 ## Mark executables and/or libraries for installation
 install(TARGETS rcsot_controller DESTINATION lib )
 
+ADD_EXECUTABLE(roscontrol_sot_parse_log
+  src/roscontrol_sot_parse_log.cc)
+install(TARGETS roscontrol_sot_parse_log DESTINATION bin )
 
 foreach(dir config launch)
   install(DIRECTORY ${dir}
