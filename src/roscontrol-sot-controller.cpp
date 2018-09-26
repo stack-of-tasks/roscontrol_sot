@@ -1004,6 +1004,8 @@ namespace sot_controller
   {
     std::string afilename("/tmp/sot.log");
     RcSotLog.save(afilename);
+
+    SotLoaderBasic::CleanUp();
   }
   
   std::string RCSotController::
