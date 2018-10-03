@@ -66,5 +66,7 @@ using the __control_mode__ variable:
      control_mode: EFFORT
 ```	
 
+# Logging
 
-
+Logs of the last 5 minutes are written in `/tmp/sot.log-*` in binary format.
+Use command `roscontrol-sot-parse-log /tmp/sot.log-duration.. > txtformat` to get the clear text version.
