@@ -8,6 +8,9 @@
 
 #include<ros/console.h>
 
+#define ENABLE_RT_LOG
+#include<dynamic-graph/real-time-logger.h>
+
 #if DEBUG
 #define ODEBUG(x) std::cout << x << std::endl
 #else
@@ -34,6 +37,14 @@
 #define RESETDEBUG4()
 #define ODEBUG4FULL(x)
 #define ODEBUG4(x)
+
+class LoggerROSStream : public ::dynamicgraph::LoggerStream
+{
+  public:
+    void write (const char* c) {
+      ROS_ERROR (c);
+    }
+};
 
 /// lhi: nickname for local_hardware_interface
 /// Depends if we are on the real robot or not.
@@ -995,6 +1006,9 @@ namespace sot_controller
   void RCSotController::
   starting(const ros::Time &)
   {
+    using namespace ::dynamicgraph;
+    RealTimeLogger::instance().addOutputStream(LoggerStreamPtr_t(new LoggerROSStream()));
+
     fillSensors();
   }
     
@@ -1005,6 +1019,9 @@ namespace sot_controller
     RcSotLog.save(afilename);
 
     SotLoaderBasic::CleanUp();
+
+    using namespace ::dynamicgraph;
+    RealTimeLogger::destroy();
   }
   
   std::string RCSotController::
