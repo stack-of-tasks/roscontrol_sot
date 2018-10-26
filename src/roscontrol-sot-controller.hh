@@ -180,7 +180,10 @@ namespace sot_controller
     int verbosity_level_;
 
     /// URDF model of the robot.
-    urdf::ModelInterfaceSharedPtr modelURDF_;    
+    urdf::ModelInterfaceSharedPtr modelURDF_;
+
+    /// Profile log
+    rc_sot_system::ProfileLog profileLog_;
 
   public :
 

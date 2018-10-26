@@ -18,22 +18,23 @@ DataToLog::DataToLog()
 {
 }
 
-void DataToLog::init(unsigned int nbDofs,long int length)
+void DataToLog::init(ProfileLog &aProfileLog)
 {
-  motor_angle.resize(nbDofs*length);
-  joint_angle.resize(nbDofs*length);
-  velocities.resize(nbDofs*length);
-  torques.resize(nbDofs*length);
-  motor_currents.resize(nbDofs*length);
-  orientation.resize(4*length);
-  accelerometer.resize(3*length);
-  gyrometer.resize(3*length);
-  force_sensors.resize(4*6*length);
-  temperatures.resize(nbDofs*length);
-  timestamp.resize(length);
-  duration.resize(length);
+  profileLog_ = aProfileLog;
+  motor_angle.resize(aProfileLog.nbDofs*aProfileLog.length);
+  joint_angle.resize(aProfileLog.nbDofs*aProfileLog.length);
+  velocities.resize(aProfileLog.nbDofs*aProfileLog.length);
+  torques.resize(aProfileLog.nbDofs*aProfileLog.length);
+  motor_currents.resize(aProfileLog.nbDofs*aProfileLog.length);
+  orientation.resize(4*aProfileLog.length);
+  accelerometer.resize(3*aProfileLog.length);
+  gyrometer.resize(3*aProfileLog.length);
+  force_sensors.resize(aProfileLog.nbForceSensors*6*aProfileLog.length);
+  temperatures.resize(aProfileLog.nbDofs*aProfileLog.length);
+  timestamp.resize(aProfileLog.length);
+  duration.resize(aProfileLog.length);
 
-  for(unsigned int i=0;i<nbDofs*length;i++)
+  for(unsigned int i=0;i<aProfileLog.nbDofs*aProfileLog.length;i++)
     { motor_angle[i] = joint_angle[i] = 
 	velocities[i] = 0.0;  }
 
@@ -46,13 +47,12 @@ Log::Log():
 {
 }
 
-void Log::init(unsigned int nbDofs, unsigned int length)
+void Log::init(ProfileLog &aProfileLog)
 {
+  profileLog_ = aProfileLog;
   lref_ =0;
   lrefts_=0;
-  nbDofs_=nbDofs;
-  length_=length;
-  StoredData_.init(nbDofs,length);
+  StoredData_.init(aProfileLog);
   struct timeval current;
   gettimeofday(&current,0);
 
@@ -62,11 +62,11 @@ void Log::init(unsigned int nbDofs, unsigned int length)
 
 void Log::record(DataToLog &aDataToLog)
 {
-  if ( (aDataToLog.motor_angle.size()!=nbDofs_) ||
-       (aDataToLog.velocities.size()!=nbDofs_))
+  if ( (aDataToLog.motor_angle.size()!=aDataToLog.nbDofs()) ||
+       (aDataToLog.velocities.size()!=aDataToLog.nbDofs()))
     return;
 
-  for(unsigned int JointID=0;JointID<nbDofs_;JointID++)
+  for(unsigned int JointID=0;JointID<aDataToLog.nbDofs();JointID++)
     {
       if (aDataToLog.motor_angle.size()>JointID)
 	StoredData_.motor_angle[JointID+lref_]= aDataToLog.motor_angle[JointID];
@@ -86,11 +86,12 @@ void Log::record(DataToLog &aDataToLog)
       StoredData_.accelerometer[lrefts_*3+axis] = aDataToLog.accelerometer[axis];
       StoredData_.gyrometer[lrefts_*3+axis] = aDataToLog.gyrometer[axis];
     }
-  for(unsigned int fsID=0;fsID<4;fsID++)
+  unsigned width_pad= 6 * profileLog_.nbForceSensors;
+  for(unsigned int fsID=0;fsID<profileLog_.nbForceSensors;fsID++)
     {
       for(unsigned int axis=0;axis<6;axis++)
 	{
-	  StoredData_.force_sensors[lrefts_*24+fsID*6+axis] = 
+	  StoredData_.force_sensors[lrefts_*width_pad+fsID*6+axis] = 
 	    aDataToLog.force_sensors[fsID*6+axis];
 	}
     }
@@ -102,9 +103,9 @@ void Log::record(DataToLog &aDataToLog)
 
   StoredData_.duration[lrefts_] = time_stop_it_ - time_start_it_;
     
-  lref_ += nbDofs_;
+  lref_ += aDataToLog.nbDofs();
   lrefts_ ++;
-  if (lref_>=nbDofs_*length_)
+  if (lref_>=aDataToLog.nbDofs()*aDataToLog.length())
     {
       lref_=0;
       lrefts_=0;
@@ -133,15 +134,15 @@ void Log::stop_it()
 void Log::save(std::string &fileName)
 {
   std::string suffix("-mastate.log");
-  saveVector(fileName,suffix,StoredData_.motor_angle, nbDofs_);
+  saveVector(fileName,suffix,StoredData_.motor_angle, profileLog_.nbDofs);
   suffix="-jastate.log";
-  saveVector(fileName,suffix,StoredData_.joint_angle, nbDofs_);
+  saveVector(fileName,suffix,StoredData_.joint_angle, profileLog_.nbDofs);
   suffix = "-vstate.log";
-  saveVector(fileName,suffix,StoredData_.velocities, nbDofs_);
+  saveVector(fileName,suffix,StoredData_.velocities, profileLog_.nbDofs);
   suffix = "-torques.log";
-  saveVector(fileName,suffix,StoredData_.torques, nbDofs_);
+  saveVector(fileName,suffix,StoredData_.torques, profileLog_.nbDofs);
   suffix = "-motor-currents.log";
-  saveVector(fileName,suffix,StoredData_.motor_currents, nbDofs_);
+  saveVector(fileName,suffix,StoredData_.motor_currents, profileLog_.nbDofs);
   suffix = "-accelero.log";
   saveVector(fileName,suffix,StoredData_.accelerometer, 3);
   suffix = "-gyro.log";
@@ -153,7 +154,7 @@ void Log::save(std::string &fileName)
   saveVector(fileName,suffix,StoredData_.force_sensors, 6);
 
   suffix = "-temperatures.log";
-  saveVector(fileName,suffix,StoredData_.temperatures, nbDofs_);
+  saveVector(fileName,suffix,StoredData_.temperatures, profileLog_.nbDofs);
 
   suffix = "-duration.log";
   saveVector(fileName,suffix,StoredData_.duration, 1);
@@ -192,12 +193,13 @@ void Log::saveVector(std::string &fileName,std::string &suffix,
   double dt;
   if (aof.is_open())
     {
-      writeHeaderToBinaryBuffer (aof, length_, size+2);
-      for(unsigned long int i=0;i<length_;i++)
+      writeHeaderToBinaryBuffer (aof, profileLog_.length, size+2);
+      for(unsigned long int i=0;i<profileLog_.length;i++)
 	{
 	  // Compute and save dt
 	  if (i==0)
-            dt = StoredData_.timestamp[i] - StoredData_.timestamp[length_-1];
+            dt = StoredData_.timestamp[i] - StoredData_.timestamp
+	      [profileLog_.length-1];
 	  else
             dt = StoredData_.timestamp[i] - StoredData_.timestamp[i-1];
           writeToBinaryFile (aof, StoredData_.timestamp[i], dt, avector, idx, size);

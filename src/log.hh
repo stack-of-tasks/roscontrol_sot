@@ -12,6 +12,13 @@
 
 namespace rc_sot_system {
 
+  struct ProfileLog
+  {
+    unsigned int nbDofs;
+    unsigned int nbForceSensors;
+    unsigned int length;
+  };
+  
   struct DataToLog
   {
     // Measured angle values at the motor side.
@@ -40,20 +47,22 @@ namespace rc_sot_system {
     // Duration
     std::vector<double> duration;
 
+    ProfileLog profileLog_;
+    
     DataToLog();
-    void init(unsigned int nbDofs, long int length);
-
+    void init(ProfileLog &aProfileLog);
+    unsigned int nbDofs() { return profileLog_.nbDofs;}
+    unsigned int nbForceSensors() { return profileLog_.nbForceSensors;}
+    unsigned int length() { return profileLog_.length;}
 
   };
 
   class Log
   {
   private:
-    // Actuated informations logged.
-    unsigned int nbDofs_;
-    // Number of iterations to be logged.
-    unsigned int length_;
-
+    /// Profile Log
+    ProfileLog profileLog_;
+    
     // Current position in the circular buffer for angles.
     long unsigned int lref_;
     // Current position int the circular buffer for timestamp
@@ -77,7 +86,7 @@ namespace rc_sot_system {
   
     Log();
 
-    void init(unsigned int nbDofs, unsigned int length);
+    void init(ProfileLog &aProfileLog);
     void record(DataToLog &aDataToLog);
 
     void save(std::string &fileName);

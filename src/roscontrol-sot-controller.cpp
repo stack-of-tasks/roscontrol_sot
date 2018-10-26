@@ -460,9 +460,10 @@ namespace sot_controller
     /// Deduce from this the degree of freedom number.
     nbDofs_ = joints_name_.size();
     /// Initialize the size of the data to store. 
-    DataOneIter_.init(nbDofs_,1);
+    DataOneIter_.init(profileLog_);
+    
     /// Initialize the data logger for 300s.
-    RcSotLog.init(nbDofs_,300000);
+    RcSotLog.init(profileLog_);
 	
     return true;
   }
