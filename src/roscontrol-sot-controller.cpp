@@ -214,7 +214,7 @@ namespace sot_controller
     // Temperature sensor not available in simulation mode
     if (!simulation_mode_)
       {
-#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND
+#ifdef TEMPERATURE_SENSOR_CONTROLLER
 	// Get a pointer to the actuator temperature sensor interface
 	act_temp_iface_ = robot_hw->get<ActuatorTemperatureSensorInterface>();
 	if (!act_temp_iface_)
@@ -686,7 +686,7 @@ namespace sot_controller
   {
     if (!simulation_mode_)
       {
-#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND	
+#ifdef TEMPERATURE_SENSOR_CONTROLLER
 	// get temperature sensors names
 	const std::vector<std::string>& act_temp_iface_names = act_temp_iface_->getNames();
 	
@@ -732,12 +732,12 @@ namespace sot_controller
       {
 	DataOneIter_.motor_angle[idJoint] = joints_[idJoint].getPosition();
 
-#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND
+#ifdef TEMPERATURE_SENSOR_CONTROLLER
 	DataOneIter_.joint_angle[idJoint] = joints_[idJoint].getAbsolutePosition();
 #endif	  
 	DataOneIter_.velocities[idJoint] = joints_[idJoint].getVelocity();
 
-#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND	
+#ifdef TEMPERATURE_SENSOR_CONTROLLER	
 	DataOneIter_.torques[idJoint] = joints_[idJoint].getTorqueSensor();
 #endif
 	DataOneIter_.motor_currents[idJoint] = joints_[idJoint].getEffort();
@@ -834,7 +834,7 @@ namespace sot_controller
   {
     if (!simulation_mode_)
       {
-#ifdef TEMPERATURE_SENSOR_CONTROLLER_FOUND
+#ifdef TEMPERATURE_SENSOR_CONTROLLER
 	for(unsigned int idFS=0;idFS<act_temp_sensors_.size();idFS++)
 	  {
 	    DataOneIter_.temperatures[idFS]=  act_temp_sensors_[idFS].getValue();
