@@ -140,7 +140,7 @@ namespace sot_controller
     /// @}
 
     /// \brief Log
-    rc_sot_system::Log RcSotLog;
+    rc_sot_system::Log RcSotLog_;
     /// @}
     
     const std::string type_name_;

@@ -62,8 +62,8 @@ void Log::init(ProfileLog &aProfileLog)
 
 void Log::record(DataToLog &aDataToLog)
 {
-  if ( (aDataToLog.motor_angle.size()!=aDataToLog.nbDofs()) ||
-       (aDataToLog.velocities.size()!=aDataToLog.nbDofs()))
+  if ( (aDataToLog.motor_angle.size()!=profileLog_.nbDofs) ||
+       (aDataToLog.velocities.size()!=profileLog_.nbDofs))
     return;
 
   for(unsigned int JointID=0;JointID<aDataToLog.nbDofs();JointID++)
@@ -105,9 +105,9 @@ void Log::record(DataToLog &aDataToLog)
 
   StoredData_.duration[lrefts_] = time_stop_it_ - time_start_it_;
     
-  lref_ += aDataToLog.nbDofs();
+  lref_ += profileLog_.nbDofs;
   lrefts_ ++;
-  if (lref_>=aDataToLog.nbDofs()*aDataToLog.length())
+  if (lref_>=profileLog_.nbDofs*profileLog_.length)
     {
       lref_=0;
       lrefts_=0;
@@ -153,7 +153,7 @@ void Log::save(std::string &fileName)
   ostringstream oss;
   oss << "-forceSensors.log";
   suffix = oss.str();
-  saveVector(fileName,suffix,StoredData_.force_sensors, 6);
+  saveVector(fileName,suffix,StoredData_.force_sensors, 6 * profileLog_.nbForceSensors);
 
   suffix = "-temperatures.log";
   saveVector(fileName,suffix,StoredData_.temperatures, profileLog_.nbDofs);

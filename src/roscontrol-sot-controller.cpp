@@ -124,12 +124,17 @@ namespace sot_controller
   void RCSotController::initLogs()
   {
     ROS_INFO_STREAM("Initialize log data structure");
-    
-    /// Initialize the size of the data to store. 
+    /// Initialize the size of the data to store.
+    /// Set temporary profileLog to one
+    /// because DataOneIter is just for one iteration.
+    unsigned tmp_length = profileLog_.length;
+    profileLog_.length = 1;
     DataOneIter_.init(profileLog_);
-    
+
+    /// Set profile Log to real good value for the stored data.
+    profileLog_.length= tmp_length;
     /// Initialize the data logger for 300s.
-    RcSotLog.init(profileLog_);
+    RcSotLog_.init(profileLog_);
 
   }
   
@@ -909,7 +914,7 @@ namespace sot_controller
   void RCSotController::one_iteration()
   {
     // Chrono start
-    RcSotLog.start_it();
+    RcSotLog_.start_it();
     
     /// Update the sensors.
     fillSensors();
@@ -926,10 +931,10 @@ namespace sot_controller
     readControl(controlValues_);
     
     // Chrono stop.
-    RcSotLog.stop_it();
+    RcSotLog_.stop_it();
     
     /// Store everything in Log.
-    RcSotLog.record(DataOneIter_);
+    RcSotLog_.record(DataOneIter_);
   }
 
   void RCSotController::
@@ -1038,7 +1043,7 @@ namespace sot_controller
   stopping(const ros::Time &)
   {
     std::string afilename("/tmp/sot.log");
-    RcSotLog.save(afilename);
+    RcSotLog_.save(afilename);
 
     SotLoaderBasic::CleanUp();
 
