@@ -87,6 +87,7 @@ void Log::record(DataToLog &aDataToLog)
       StoredData_.gyrometer[lrefts_*3+axis] = aDataToLog.gyrometer[axis];
     }
   unsigned width_pad= 6 * profileLog_.nbForceSensors;
+  
   for(unsigned int fsID=0;fsID<profileLog_.nbForceSensors;fsID++)
     {
       for(unsigned int axis=0;axis<6;axis++)
@@ -95,6 +96,7 @@ void Log::record(DataToLog &aDataToLog)
 	    aDataToLog.force_sensors[fsID*6+axis];
 	}
     }
+  
   struct timeval current;
   gettimeofday(&current,0);
 

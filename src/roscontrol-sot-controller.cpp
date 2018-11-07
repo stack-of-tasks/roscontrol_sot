@@ -82,6 +82,7 @@ namespace sot_controller
     verbosity_level_(0)
   {
     RESETDEBUG4();
+    profileLog_.length=300000;
   }
   
   void RCSotController::
@@ -120,6 +121,18 @@ namespace sot_controller
 #endif
   }
 
+  void RCSotController::initLogs()
+  {
+    ROS_INFO_STREAM("Initialize log data structure");
+    
+    /// Initialize the size of the data to store. 
+    DataOneIter_.init(profileLog_);
+    
+    /// Initialize the data logger for 300s.
+    RcSotLog.init(profileLog_);
+
+  }
+  
   bool RCSotController::
   initRequest (lhi::RobotHW * robot_hw,
 	       ros::NodeHandle &robot_nh,
@@ -135,6 +148,9 @@ namespace sot_controller
     if (!initInterfaces(robot_hw,robot_nh,controller_nh,claimed_resources))
       return false;
 
+    /// Create all the internal data structures for logging.
+    initLogs();
+    
     /// Create SoT
     SotLoaderBasic::Initialization();
 
@@ -308,6 +324,14 @@ namespace sot_controller
 	robot_nh.getParam("/sot_controller/verbosity_level",verbosity_level_);
 	ROS_INFO_STREAM("Verbosity_level " << verbosity_level_);
       }
+    if (robot_nh.hasParam("/sot_controller/log/size"))
+      {
+	int llength;
+	robot_nh.getParam("/sot_controller/log/size",llength);
+	profileLog_.length=(unsigned int)llength;
+	ROS_INFO_STREAM("Size of the log " << profileLog_.length);
+      }
+
   }
   
   bool RCSotController::
@@ -459,11 +483,7 @@ namespace sot_controller
 
     /// Deduce from this the degree of freedom number.
     nbDofs_ = joints_name_.size();
-    /// Initialize the size of the data to store. 
-    DataOneIter_.init(profileLog_);
-    
-    /// Initialize the data logger for 300s.
-    RcSotLog.init(profileLog_);
+    profileLog_.nbDofs = nbDofs_;
 	
     return true;
   }
@@ -678,6 +698,7 @@ namespace sot_controller
       // sensor handle on torque forces
       ft_sensors_.push_back(ft_iface_->getHandle(ft_iface_names[i]));
     }
+    profileLog_.nbForceSensors = ft_iface_names.size();
     return true;
   }
 

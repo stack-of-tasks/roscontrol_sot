@@ -227,7 +227,11 @@ namespace sot_controller
     bool initForceSensors();
     /// Initialize the hardware interface accessing the temperature sensors.
     bool initTemperatureSensors();
-
+    
+    /// Initialize internal structure for the logs based on nbDofs
+    /// number of force sensors and size of the buffer.
+    void initLogs();
+    
     ///@{ \name Read the parameter server
     /// \brief Entry point
     bool readParams(ros::NodeHandle &robot_nh);
