@@ -42,7 +42,7 @@ class LoggerROSStream : public ::dynamicgraph::LoggerStream
 {
   public:
     void write (const char* c) {
-      ROS_ERROR (c);
+      ROS_ERROR ("%s",c);
     }
 };
 
