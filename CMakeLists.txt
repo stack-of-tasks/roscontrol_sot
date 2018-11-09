@@ -18,6 +18,8 @@ cmake_minimum_required(VERSION 2.8.3)
 
 set(CXX_DISABLE_WERROR True)
 
+set(WARNING_CXX_FLAGS "${WARNING_CXX_FLAGS} -Werror=format-security")
+
 include(cmake/base.cmake)
 include(cmake/ros.cmake)
 include(cmake/GNUInstallDirs.cmake)
