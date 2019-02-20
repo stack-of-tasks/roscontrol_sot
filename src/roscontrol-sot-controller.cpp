@@ -626,7 +626,7 @@ namespace sot_controller
       {
 	bool notok=true;
 	SotControlMode lcontrol_mode = control_mode_;
-  bool failure=false;
+	bool failure=false;
 	
 	while (notok)
 	  {
@@ -652,7 +652,7 @@ namespace sot_controller
 	      }
 	    catch (...)
 	      {
-    failure=true;
+		failure=true;
 		ROS_ERROR_STREAM("Could not find joint " 
 				 << joints_name_[i]);
 		if (lcontrol_mode==POSITION)
@@ -665,8 +665,8 @@ namespace sot_controller
 		else if (lcontrol_mode==EFFORT)
 		  lcontrol_mode = POSITION;
 	      }
-      if (!failure)
-        desired_init_pose_[i] = joints_[i].getPosition();
+	    if (!failure)
+	      desired_init_pose_[i] = joints_[i].getPosition();
 	  }
       }
         
