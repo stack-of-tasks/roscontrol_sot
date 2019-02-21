@@ -1,102 +1,54 @@
+# http://rainboard.laas.fr/project/roscontrol-sot/.gitlab-ci.yml
 
 variables:
   GIT_SUBMODULE_STRATEGY: "recursive"
-  GIT_DEPTH: "3"
-  NAMESPACE: pyrene-dev
-  PROJECT: roscontrol_sot
-  REGISTRY: gepgitlab.laas.fr:4567
-  IMAGE: "${REGISTRY}/${NAMESPACE}/roscontrol_sot"
   CCACHE_BASEDIR: "${CI_PROJECT_DIR}"
   CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
+  CTEST_PARALLEL_LEVEL: 4
+
 cache:
   paths:
     - ccache
-    
+
 .robotpkg-roscontrol-sot: &robotpkg-roscontrol-sot
-  variables:
-    ROBOTPKG: roscontrol-sot
-    CATEGORY: wip
-  before_script:
-    - mkdir -p build/ccache
-    - cd build
-    - export CCACHE_BASEDIR=${PWD}
-    - export CCACHE_DIR=${PWD}/ccache
+  except:
+    - gh-pages
   script:
-    - cd /root/robotpkg/${CATEGORY}/${ROBOTPKG}
+    - mkdir -p ccache
+    - cd /root/robotpkg/wip
     - git pull
-    - make checkout MASTER_REPOSITORY="dir ${CI_PROJECT_DIR}"
-    - make checkout
+    - cd roscontrol-sot
+    - make checkout MASTER_REPOSITORY="git ${CI_PROJECT_DIR}/.git"
     - make install
-    - cd work.$(hostname)/$(make show-var VARNAME=DISTNAME)
+    - cd $(make show-var VARNAME=WRKSRC)
     - make test
- 
-  except:
-    - gh-pages
 
+robotpkg-roscontrol-sot-16.04-release:
+  <<: *robotpkg-roscontrol-sot
+  image: eur0c.laas.fr:5000/stack-of-tasks/roscontrol-sot/roscontrol-sot:16.04
 
-robotpkg-roscontrol-sot-14.04:
+robotpkg-roscontrol-sot-16.04-debug:
   <<: *robotpkg-roscontrol-sot
+  image: eur0c.laas.fr:5000/stack-of-tasks/roscontrol-sot/roscontrol-sot:16.04
   before_script:
-    - mkdir -p build/ccache
-    - cd build
-    - export CCACHE_BASEDIR=${PWD}
-    - export CCACHE_DIR=${PWD}/ccache
-    - apt-get update    
-    - apt-get install -y ros-indigo-twist-mux ros-indigo-joy-teleop ros-indigo-moveit-ros-move-group  ros-indigo-humanoid-nav-msgs ros-indigo-four-wheel-steering-msgs 
-  image: ${IMAGE}:14.04
-  
-robotpkg-roscontrol-sot-16.04:
-  before_script:
-    - mkdir -p build/ccache
-    - cd build
-    - export CCACHE_BASEDIR=${PWD}
-    - export CCACHE_DIR=${PWD}/ccache
-    - apt-get update        
-    - apt-get install -y ros-kinetic-twist-mux ros-kinetic-joy-teleop ros-kinetic-moveit-ros-move-group  ros-kinetic-humanoid-nav-msgs ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser
-  script:
-    - cd /root/robotpkg
-    - git pull
-    - cd /root/robotpkg/wip
-    - git pull
-    - cd /root/robotpkg/wip/roscontrol-sot
-    - dpkg --purge robotpkg-talos-pal-hardware-interfaces robotpkg-talos-ros-control robotpkg-talos-ros-controllers
-    - echo "MASTER_REPOSITORY = git ${CI_PROJECT_DIR}" >> Makefile
-    - echo "REPOSITORY.roscontrol-sot = git ${CI_PROJECT_DIR}" >> /opt/openrobots/etc/robotpkg.conf
-    - echo "ACCEPTABLE_LICENSES+=pal-license" >> /opt/openrobots/etc/robotpkg.conf
-    - make checkout
-    - make install
-    - cd work.*/${PROJECT}*/
-  except:
-    - gh-pages
-  image: ${IMAGE}:16.04
-  
-robotpkg-roscontrol-sot-dubnium:
+    - echo PKG_OPTIONS.roscontrol-sot=debug >> /opt/openrobots/etc/robotpkg.conf
+
+doc-coverage:
   <<: *robotpkg-roscontrol-sot
+  image: eur0c.laas.fr:5000/stack-of-tasks/roscontrol-sot/roscontrol-sot:16.04
   before_script:
-    - mkdir -p build/ccache
-    - cd build
-    - export CCACHE_BASEDIR=${PWD}
-    - export CCACHE_DIR=${PWD}/ccache
-  script:
-    - cd /root/robotpkg
-    - git pull
-    - cd /root/robotpkg/wip
-    - git pull
+    - echo -e 'CXXFLAGS+= --coverage\nLDFLAGS+= --coverage\nPKG_DEFAULT_OPTIONS= debug' >> /opt/openrobots/etc/robotpkg.conf
+  after_script:
     - cd /root/robotpkg/wip/roscontrol-sot
-    - dpkg --purge robotpkg-talos-pal-hardware-interfaces robotpkg-talos-ros-control robotpkg-talos-ros-controllers
-    - dpkg --purge ros-indigo-ros-control ros-indigo-controller-manager-tests ros-indigo-controller-manager ros-indigo-controller-interface
-    - dpkg --purge ros-indigo-joint-limits-interface ros-indigo-hardware-interface
-    - export ROS_PACKAGE_PATH=/opt/pal/dubnium/share:$ROS_PACKAGE_PATH
-    - export PKG_CONFIG_PATH=/opt/pal/dubnium/lib/pkgconfig:/opt/ros/indigo/lib/pkgconfig:/opt/openrobots/lib/pkgconfig
-    - echo "MASTER_REPOSITORY = git ${CI_PROJECT_DIR}" >> Makefile
-    - echo "REPOSITORY.roscontrol-sot = git ${CI_PROJECT_DIR}" >> /opt/openrobots/etc/robotpkg.conf
-    - echo "ACCEPTABLE_LICENSES+=pal-license" >> /opt/openrobots/etc/robotpkg.conf
-    - echo "CMAKE_PREFIX_PATH+= /opt/pal/dubnium" >> Makefile
-    - echo "CMAKE_CXX_FLAGS+= -I/opt/pal/dubnium/include" >> Makefile
-    - echo "PKG_CONFIG_PATH=/opt/pal/dubnium/lib/pkgconfig:/opt/ros/indigo/lib/pkgconfig:/opt/openrobots/lib/pkgconfig" >> Makefile
-    - make checkout
-    - make install
-    - cd work.*/${PROJECT}*/
-  except:
-    - gh-pages    
-  image: ${IMAGE}:dubnium
+    - cd $(make show-var VARNAME=WRKSRC)
+    - make doc
+    - mv doc/doxygen-html ${CI_PROJECT_DIR}
+    - mkdir -p ${CI_PROJECT_DIR}/coverage/
+    - gcovr -r .
+    - gcovr -r . --html --html-details -o ${CI_PROJECT_DIR}/coverage/index.html
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - doxygen-html/
+      - coverage/
+
