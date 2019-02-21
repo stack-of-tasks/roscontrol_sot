@@ -1,3 +1,7 @@
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![Build Status](https://gepgitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/pipeline.svg)](http://gepgitlab.laas.fr/stack-of-tasks/roscontrol_sot)
+[![Coverage report](https://gepgitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/coverage.svg?job=doc-coverage)](http://projects.laas.fr/gepetto/doc/stack-of-tasks/roscontrol_sot/master/coverage/)
+
 # Introduction
 This package encapsulates a SoT graph to control a robot in the ros-control framework.
 The intent is to make it generic and adapted to any robot through rosparam.
