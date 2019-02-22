@@ -1,33 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019, CNRS
-//
-// BSD 2-Clause License
-//
-// Copyright (c) 2017, Stack Of Tasks development team
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// * Redistributions of source code must retain the above copyright notice, this
-//  list of conditions and the following disclaimer.
-//
-// * Redistributions in binary form must reproduce the above copyright notice,
-//  this list of conditions and the following disclaimer in the documentation
-//  and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//////////////////////////////////////////////////////////////////////////////
-
 /*
  * Author: Olivier STASSE
  */
@@ -54,7 +24,7 @@
 /* Local header */
 #include "log.hh"
 
-namespace sot_controller 
+namespace sot_controller
 {
   enum SotControlMode { POSITION, EFFORT};
 
@@ -65,7 +35,7 @@ namespace sot_controller
       : ros::Exception(what) {}
   };
 
-  
+
   struct EffortControlPDMotorControlData
   {
     control_toolbox::Pid pid_controller;
@@ -83,28 +53,28 @@ namespace sot_controller
 
 #ifndef CONTROLLER_INTERFACE_KINETIC
   typedef std::set<std::string> ClaimedResources;
-#endif 
+#endif
   /**
      This class encapsulates the Stack of Tasks inside the ros-control infra-structure.
-     
+
    */
   namespace lhi = hardware_interface;
   namespace lci = controller_interface;
-  
+
   class RCSotController : public lci::ControllerBase,
 			       SotLoaderBasic
   {
-    
+
   protected:
     /// Robot nb dofs.
     size_t nbDofs_;
-    
+
     /// Data log.
     rc_sot_system::DataToLog DataOneIter_;
   private:
-   
+
     /// @{ \name Ros-control related fields
-    
+
     /// \brief Vector of joint handles.
     std::vector<lhi::JointHandle> joints_;
     std::vector<std::string> joints_name_;
@@ -114,26 +84,26 @@ namespace sot_controller
 
     /// \brief Vector of 6D force sensor.
     std::vector<lhi::ForceTorqueSensorHandle> ft_sensors_;
-    
+
 #ifdef TEMPERATURE_SENSOR_CONTROLLER
     /// \brief Vector of temperature sensors for the actuators.
-    std::vector<lhi::ActuatorTemperatureSensorHandle> 
+    std::vector<lhi::ActuatorTemperatureSensorHandle>
     act_temp_sensors_;
 #endif
-    
+
     /// \brief Interface to the joints controlled in position.
     lhi::PositionJointInterface * pos_iface_;
 
     /// \brief Interface to the joints controlled in force.
     lhi::EffortJointInterface * effort_iface_;
-    
+
     /// \brief Interface to the sensors (IMU).
     lhi::ImuSensorInterface* imu_iface_;
 
     /// \brief Interface to the sensors (Force).
     lhi::ForceTorqueSensorInterface* ft_iface_;
-    
-#ifdef TEMPERATURE_SENSOR_CONTROLLER    
+
+#ifdef TEMPERATURE_SENSOR_CONTROLLER
     /// \brief Interface to the actuator temperature sensor.
     lhi::ActuatorTemperatureSensorInterface  * act_temp_iface_;
 #endif
@@ -142,7 +112,7 @@ namespace sot_controller
     /// \brief Log
     rc_sot_system::Log RcSotLog_;
     /// @}
-    
+
     const std::string type_name_;
 
     /// \brief Adapt the interface to Gazebo simulation
@@ -150,14 +120,14 @@ namespace sot_controller
 
     /// \brief The robot can controlled in effort or position mode (default).
     SotControlMode control_mode_;
-    
+
     /// \brief Implement a PD controller for the robot when the dynamic graph
     /// is not on.
     std::map<std::string, EffortControlPDMotorControlData> effort_mode_pd_motors_;
 
     /// \brief Give the desired position when the dynamic graph is not on.
     std::vector<double> desired_init_pose_;
-    
+
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
     /// * motor-angles
@@ -189,9 +159,9 @@ namespace sot_controller
 
     RCSotController ();
 
-    /// \brief Read the configuration files, 
+    /// \brief Read the configuration files,
     /// claims the request to the robot and initialize the Stack-Of-Tasks.
-    bool initRequest (lhi::RobotHW * robot_hw, 
+    bool initRequest (lhi::RobotHW * robot_hw,
 		      ros::NodeHandle &robot_nh,
 		      ros::NodeHandle &controller_nh,
 		      ClaimedResources & claimed_resources);
@@ -203,7 +173,7 @@ namespace sot_controller
     bool init();
 
     /// \brief Read the sensor values, calls the control graph, and apply the control.
-    /// 
+    ///
     void update(const ros::Time&, const ros::Duration& );
     /// \brief Starting by filling the sensors.
     void starting(const ros::Time&);
@@ -227,11 +197,11 @@ namespace sot_controller
     bool initForceSensors();
     /// Initialize the hardware interface accessing the temperature sensors.
     bool initTemperatureSensors();
-    
+
     /// Initialize internal structure for the logs based on nbDofs
     /// number of force sensors and size of the buffer.
     void initLogs();
-    
+
     ///@{ \name Read the parameter server
     /// \brief Entry point
     bool readParams(ros::NodeHandle &robot_nh);
@@ -246,7 +216,7 @@ namespace sot_controller
     /// For instance the yaml file should have a line with map_rc_to_sot_device:
     ///   map_rc_to_sot_device: [ ]
     bool readParamsFromRCToSotDevice(ros::NodeHandle &robot_nh);
-    
+
     /// \brief Read the control mode.
     bool readParamsControlMode(ros::NodeHandle & robot_nh);
 
@@ -268,14 +238,14 @@ namespace sot_controller
 
     /// \brief Get the information from the low level and calls fillSensorsIn.
     void fillJoints();
-    
+
     /// In the map sensorsIn_ creates the key "name_IMUNb"
     /// and associate to this key the vector data.
     void setSensorsImu(std::string &name,
 		       int IMUNb,
 		       std::vector<double> &data);
 
-    /// @{ \name Fill the sensors 
+    /// @{ \name Fill the sensors
     /// Read the imus and set the interface to the SoT.
     void fillImu();
     /// Read the force sensors
@@ -285,13 +255,13 @@ namespace sot_controller
     /// Entry point for reading all the sensors .
     void fillSensors();
     ///@}
-    
+
     ///@{ Control the robot while waiting for the SoT
     /// Default control in effort.
     void localStandbyEffortControlMode(const ros::Duration& period);
     /// Default control in position.
     void localStandbyPositionControlMode();
-    
+
     ///@}
     /// Extract control values to send to the simulator.
     void readControl(std::map<std::string,dgs::ControlValues> &controlValues);
@@ -304,12 +274,12 @@ namespace sot_controller
 
     /// Control period
     double dt_;
-    
+
     /// \brief Command send to motors
     /// Depending on control_mode it can be either
     /// position control or torque control.
     std::vector<double> command_;
-    
+
     /// One iteration: read sensor, compute the control law, apply control.
     void one_iteration();
 
