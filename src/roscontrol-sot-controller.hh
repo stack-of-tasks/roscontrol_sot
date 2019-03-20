@@ -8,11 +8,16 @@
 #include <string>
 #include <map>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvariadic-macros"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #include <controller_interface/controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
 #include <pal_hardware_interfaces/actuator_temperature_interface.h>
+#pragma GCC diagnostic pop
 
 #include <dynamic_graph_bridge/sot_loader_basic.hh>
 #include <ros/ros.h>
