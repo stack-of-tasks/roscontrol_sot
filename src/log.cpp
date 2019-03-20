@@ -9,7 +9,11 @@
 #include <fstream>
 #include <iomanip>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvariadic-macros"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include<ros/console.h>
+#pragma GCC diagnostic pop
 
 using namespace std;
 using namespace rc_sot_system;
@@ -167,17 +171,17 @@ inline void writeHeaderToBinaryBuffer (ofstream& of,
     const unsigned int& nVector,
     const unsigned int& vectorSize)
 {
-  of.write ((char*)&nVector   , sizeof(unsigned int));
-  of.write ((char*)&vectorSize, sizeof(unsigned int));
+  of.write ((const char*)(&nVector)   , sizeof(unsigned int));
+  of.write ((const char*)(&vectorSize), sizeof(unsigned int));
 }
 
 inline void writeToBinaryFile (ofstream& of,
     const double& t, const double& dt,
     const std::vector<double>& data, const std::size_t& idx, const std::size_t& size)
 {
-  of.write ((char*)&t          ,       sizeof(double));
-  of.write ((char*)&dt         ,       sizeof(double));
-  of.write ((char*)(&data[idx]), size*(sizeof(double)));
+  of.write ((const char*)&t          ,       sizeof(double));
+  of.write ((const char*)&dt         ,       sizeof(double));
+  of.write ((const char*)(&data[idx]), size*(sizeof(double)));
 }
 
 void Log::saveVector(std::string &fileName,std::string &suffix,
