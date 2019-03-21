@@ -16,9 +16,9 @@ int main (int argc, char* argv[])
   }
 
   // Read headers
-  unsigned int nVector = 0, vectorSize = 0;
-  in.read ((char*)&nVector   , sizeof(unsigned int));
-  in.read ((char*)&vectorSize, sizeof(unsigned int));
+  std::size_t nVector = 0, vectorSize = 0;
+  in.read ((char*)&nVector   , sizeof(std::size_t));
+  in.read ((char*)&vectorSize, sizeof(std::size_t));
   if (!in.good()) {
     std::cerr << "Couldn't parse file: " << argv[1] << '\n';
     return 3;

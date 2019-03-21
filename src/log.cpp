@@ -9,11 +9,6 @@
 #include <fstream>
 #include <iomanip>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wvariadic-macros"
-#pragma GCC diagnostic ignored "-Wpedantic"
-#include<ros/console.h>
-#pragma GCC diagnostic pop
 
 using namespace std;
 using namespace rc_sot_system;
@@ -90,7 +85,7 @@ void Log::record(DataToLog &aDataToLog)
       StoredData_.accelerometer[lrefts_*3+axis] = aDataToLog.accelerometer[axis];
       StoredData_.gyrometer[lrefts_*3+axis] = aDataToLog.gyrometer[axis];
     }
-  unsigned width_pad= 6 * profileLog_.nbForceSensors;
+  std::size_t width_pad= 6 * profileLog_.nbForceSensors;
   
   for(unsigned int fsID=0;fsID<profileLog_.nbForceSensors;fsID++)
     {
@@ -168,11 +163,11 @@ void Log::save(std::string &fileName)
 }
 
 inline void writeHeaderToBinaryBuffer (ofstream& of,
-    const unsigned int& nVector,
-    const unsigned int& vectorSize)
+				       const std::size_t& nVector,
+				       const std::size_t& vectorSize)
 {
-  of.write ((const char*)(&nVector)   , sizeof(unsigned int));
-  of.write ((const char*)(&vectorSize), sizeof(unsigned int));
+  of.write ((const char*)(&nVector)   , sizeof(std::size_t));
+  of.write ((const char*)(&vectorSize), sizeof(std::size_t));
 }
 
 inline void writeToBinaryFile (ofstream& of,
@@ -186,7 +181,7 @@ inline void writeToBinaryFile (ofstream& of,
 
 void Log::saveVector(std::string &fileName,std::string &suffix,
 		     const std::vector<double> &avector,
-		     unsigned int size)
+		     std::size_t size)
 {
   ostringstream oss;
   oss << fileName;

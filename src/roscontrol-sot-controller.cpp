@@ -3,7 +3,7 @@
 #include <dlfcn.h>
 #include <sstream>
 
-#include <pluginlib/class_list_macros.h>
+
 #include "roscontrol-sot-controller.hh"
 
 #include<ros/console.h>
@@ -127,7 +127,7 @@ namespace sot_controller
     /// Initialize the size of the data to store.
     /// Set temporary profileLog to one
     /// because DataOneIter is just for one iteration.
-    unsigned tmp_length = profileLog_.length;
+    size_t tmp_length = profileLog_.length;
     profileLog_.length = 1;
     DataOneIter_.init(profileLog_);
 
@@ -961,7 +961,6 @@ namespace sot_controller
 	    
 	    double local_command = ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
 	    // Apply command
-	    control_toolbox::Pid::Gains gains = ecpdcdata.pid_controller.getGains();
 	    joints_[idJoint].setCommand(local_command);
             
 	    // Update previous value.
