@@ -20,8 +20,6 @@ find_package(PkgConfig REQUIRED)
 add_required_dependency(bullet)
 add_required_dependency("urdfdom")
 
-#set(bullet_FOUND 0)
-#pkg_check_modules(bullet REQUIRED bullet)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -113,8 +111,8 @@ target_link_libraries(rcsot_controller
   ${bullet_LIBRARIES}
   )
 
-pkg_config_use_dependency(rcsot_controller urdfdom)
-pkg_config_use_dependency(rcsot_controller dynamic-graph)
+pkg_config_use_dependency(rcsot_controller urdfdom optional NO_INCLUDE_SYSTEM)
+pkg_config_use_dependency(rcsot_controller dynamic-graph optional NO_INCLUDE_SYSTEM)
 
 ## Mark executables and/or libraries for installation
 install(TARGETS rcsot_controller DESTINATION lib )
