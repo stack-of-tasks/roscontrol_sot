@@ -59,13 +59,11 @@ namespace sot_controller
   typedef std::map<std::string,std::string>::iterator it_map_rt_to_sot;
   typedef std::map<std::string,std::string>::iterator it_control_mode;
   
-  EffortControlPDMotorControlData::EffortControlPDMotorControlData()
+  ControlPDMotorControlData::ControlPDMotorControlData()
   {
-    prev = 0.0; vel_prev = 0.0; des_pos=0.0;
-    integ_err=0.0; 
   }
   
-  void EffortControlPDMotorControlData::read_from_xmlrpc_value
+  void ControlPDMotorControlData::read_from_xmlrpc_value
   (const std::string &prefix)
   {
     pid_controller.initParam(prefix);
@@ -163,15 +161,11 @@ namespace sot_controller
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
 	std::string joint_name = joints_name_[idJoint];
-	std::map<std::string,EffortControlPDMotorControlData>::iterator
+	std::map<std::string,ControlPDMotorControlData>::iterator
 	  search_ecpd = effort_mode_pd_motors_.find(joint_name);
 	
 	if (search_ecpd!=effort_mode_pd_motors_.end())
 	  {
-	    EffortControlPDMotorControlData & ecpdcdata =
-	      search_ecpd->second;
-	    ecpdcdata.des_pos = joints_[joint_name].joint.getPosition();
-	    
 	    /// If we are in effort mode then the device should not do any integration.
 	    sotController_->setNoIntegration();
 
@@ -512,9 +506,9 @@ namespace sot_controller
   getJointControlMode(std::string &joint_name,
 		      JointSotHandle &aJointSotHandle)
   {
-    std::string scontrol_mode,
-      seffort("EFFORT"),svelocity("VELOCITY"),sposition("POSITION");
-    std::string str_control_mode[2] =
+    std::string scontrol_mode;
+    static const std::string seffort("EFFORT"),svelocity("VELOCITY"),sposition("POSITION");
+    static const std::string str_control_mode[2] =
       {"ros_control_mode","sot_control_mode"};
 
     /// Read the list of control_mode
@@ -532,12 +526,22 @@ namespace sot_controller
 	    return false;
 	  }
 
-	if (scontrol_mode==sposition)
+	if      (scontrol_mode==sposition)
 	  joint_control_mode=POSITION;
-	if (scontrol_mode==svelocity)
+        else if (scontrol_mode==svelocity)
 	  joint_control_mode=VELOCITY;
-	if (scontrol_mode==seffort)
+        else if (scontrol_mode==seffort)
 	  joint_control_mode=EFFORT;
+        else {
+	  ROS_ERROR("%d %s for %s not understood. Expected %s, %s or %s. Got %s",i,
+		    str_control_mode[i].c_str(),
+		    joint_name.c_str(),
+                    sposition.c_str(),
+                    svelocity.c_str(),
+                    seffort.c_str(),
+		    scontrol_mode.c_str());
+          return false;
+        }
 
 	if (i==0)
 	  aJointSotHandle.ros_control_mode = joint_control_mode;
@@ -546,6 +550,7 @@ namespace sot_controller
       }
     return true;
   }
+
   bool RCSotController::
   readParamsControlMode(ros::NodeHandle &robot_nh)
   {
@@ -989,26 +994,21 @@ namespace sot_controller
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
 	std::string joint_name = joints_name_[idJoint];
-	std::map<std::string,EffortControlPDMotorControlData>::iterator
+	std::map<std::string,ControlPDMotorControlData>::iterator
 	  search_ecpd = effort_mode_pd_motors_.find(joint_name);
              
 	if (search_ecpd!=effort_mode_pd_motors_.end())
 	  {
-	    EffortControlPDMotorControlData & ecpdcdata =
-	      search_ecpd->second;
-	    lhi::JointHandle &aJoint = joints_[joints_name_[idJoint]].joint;
+	    ControlPDMotorControlData & ecpdcdata = search_ecpd->second;
+	    JointSotHandle &aJointSotHandle = joints_[joint_name];
+	    lhi::JointHandle &aJoint = aJointSotHandle.joint;
+
 	    double vel_err = 0 - aJoint.getVelocity();
-	    double err = ecpdcdata.des_pos - aJoint.getPosition();
-            
-	    ecpdcdata.integ_err +=err;
+	    double err = aJointSotHandle.desired_init_pose - aJoint.getPosition();
 	    
 	    double local_command = ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
 	    // Apply command
-	    control_toolbox::Pid::Gains gains = ecpdcdata.pid_controller.getGains();
 	    aJoint.setCommand(local_command);
-            
-	    // Update previous value.
-	    ecpdcdata.prev = DataOneIter_.motor_angle[idJoint];
 	  }
       }
   }

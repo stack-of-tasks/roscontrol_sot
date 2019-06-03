@@ -42,17 +42,11 @@ namespace sot_controller
   };
 
 
-  struct EffortControlPDMotorControlData
+  struct ControlPDMotorControlData
   {
     control_toolbox::Pid pid_controller;
 
-    //double p_gain,d_gain,i_gain;
-    double prev;
-    double vel_prev;
-    double des_pos;
-    double integ_err;
-
-    EffortControlPDMotorControlData();
+    ControlPDMotorControlData();
     //    void read_from_xmlrpc_value(XmlRpc::XmlRpcValue &aXRV);
     void read_from_xmlrpc_value(const std::string &prefix);
   };
@@ -132,7 +126,7 @@ namespace sot_controller
 
     /// \brief Implement a PD controller for the robot when the dynamic graph
     /// is not on.
-    std::map<std::string, EffortControlPDMotorControlData> effort_mode_pd_motors_;
+    std::map<std::string, ControlPDMotorControlData> effort_mode_pd_motors_;
 
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
