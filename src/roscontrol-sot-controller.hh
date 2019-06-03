@@ -30,7 +30,9 @@
 
 namespace sot_controller
 {
-  enum SotControlMode { POSITION, EFFORT};
+  enum ControlMode { POSITION, VELOCITY, EFFORT};
+  namespace lhi = hardware_interface;
+  namespace lci = controller_interface;
 
   class XmlrpcHelperException : public ros::Exception
   {
@@ -55,6 +57,15 @@ namespace sot_controller
     void read_from_xmlrpc_value(const std::string &prefix);
   };
 
+  struct JointSotHandle
+  {
+    lhi::JointHandle joint;
+    double desired_init_pose;
+    ControlMode sot_control_mode;
+    ControlMode ros_control_mode;
+  };
+
+  typedef std::map<std::string,JointSotHandle>::iterator it_joint_sot_h;
 #ifndef CONTROLLER_INTERFACE_KINETIC
   typedef std::set<std::string> ClaimedResources;
 #endif
@@ -62,9 +73,6 @@ namespace sot_controller
      This class encapsulates the Stack of Tasks inside the ros-control infra-structure.
 
    */
-  namespace lhi = hardware_interface;
-  namespace lci = controller_interface;
-
   class RCSotController : public lci::ControllerBase,
 			       SotLoaderBasic
   {
@@ -80,7 +88,7 @@ namespace sot_controller
     /// @{ \name Ros-control related fields
 
     /// \brief Vector of joint handles.
-    std::vector<lhi::JointHandle> joints_;
+    std::map<std::string,JointSotHandle> joints_;
     std::vector<std::string> joints_name_;
 
     /// \brief Vector towards the IMU.
@@ -122,15 +130,9 @@ namespace sot_controller
     /// \brief Adapt the interface to Gazebo simulation
     bool simulation_mode_;
 
-    /// \brief The robot can controlled in effort or position mode (default).
-    SotControlMode control_mode_;
-
     /// \brief Implement a PD controller for the robot when the dynamic graph
     /// is not on.
     std::map<std::string, EffortControlPDMotorControlData> effort_mode_pd_motors_;
-
-    /// \brief Give the desired position when the dynamic graph is not on.
-    std::vector<double> desired_init_pose_;
 
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
@@ -183,8 +185,6 @@ namespace sot_controller
     void starting(const ros::Time&);
     /// \brief Stopping the control
     void stopping(const ros::Time&);
-    /// \brief Display the kind of hardware interface that this controller is using.
-    virtual std::string getHardwareInterfaceType() const;
 
   protected:
     /// Initialize the roscontrol interfaces
@@ -289,6 +289,13 @@ namespace sot_controller
 
     /// Read URDF model from /robot_description parameter.
     bool readUrdf(ros::NodeHandle &robot_nh);
+
+    /// Returns control mode by reading rosparam.
+    /// It reads /sot_controller/control_mode/joint_name
+    /// and check 
+    bool
+    getJointControlMode(std::string &joint_name,
+			JointSotHandle &aJointSotHandle);
   };
 }
 
