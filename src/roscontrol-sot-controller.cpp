@@ -198,6 +198,15 @@ namespace sot_controller
 		 , lns.c_str());
       }
 
+    // Get a pointer to the joint velocity control interface
+    vel_iface_ = robot_hw->get<VelocityJointInterface>();
+    if (!vel_iface_)
+      {
+	ROS_WARN("This controller did not find  a hardware interface of type VelocityJointInterface."
+		 " Make sure this is registered in the %s::RobotHW class if it is required."
+		 , lns.c_str());
+      }
+
     // Get a pointer to the joint effort control interface
     effort_iface_ = robot_hw->get<EffortJointInterface>();
     if (! effort_iface_)
@@ -422,6 +431,58 @@ namespace sot_controller
       }
     
     ROS_ERROR("No parameter /sot_controller/effort_controler_pd_motor_init");
+    return false;
+  }
+  
+  bool RCSotController::
+  readParamsVelocityControlPDMotorControlData(ros::NodeHandle &robot_nh)
+  {
+    // Read libname
+    if (robot_nh.hasParam("/sot_controller/velocity_control_pd_motor_init/gains"))
+      {
+       XmlRpc::XmlRpcValue xml_rpc_ecpd_init;
+       robot_nh.getParamCached("/sot_controller/velocity_control_pd_motor_init/gains",
+                               xml_rpc_ecpd_init);
+
+       /// Display gain during transition control.
+       if (verbosity_level_>0)
+    	 ROS_INFO("/sot_controller/velocity_control_pd_motor_init/gains: %d %d %d\n",
+    		  xml_rpc_ecpd_init.getType(),
+		  XmlRpc::XmlRpcValue::TypeArray,
+		  XmlRpc::XmlRpcValue::TypeStruct);
+       
+       velocity_mode_pd_motors_.clear();
+       
+       for (size_t i=0;i<joints_name_.size();i++)
+         {
+	   // Check if the joint should be in ROS VELOCITY mode
+	   std::map<std::string,JointSotHandle>::iterator
+	     search_joint_sot_handle = joints_.find(joints_name_[i]);
+	   if (search_joint_sot_handle!=joints_.end())
+	     {
+	       JointSotHandle aJointSotHandle = search_joint_sot_handle->second;
+	       if (aJointSotHandle.ros_control_mode==VELOCITY)
+		 {
+		   // Test if PID data is present
+		   if (xml_rpc_ecpd_init.hasMember(joints_name_[i]))
+		     {
+		       std::string prefix=
+			 "/sot_controller/velocity_control_pd_motor_init/gains/"
+			 + joints_name_[i];
+		       velocity_mode_pd_motors_[joints_name_[i]].
+			 read_from_xmlrpc_value(prefix);
+		     }
+		   else
+		     ROS_ERROR("No PID data for velocity controlled joint %s in /sot_controller/velocity_control_pd_motor_init/gains/",
+			       joints_name_[i].c_str());
+		 }
+	     }
+
+         }
+       return true;
+      }
+    
+    ROS_ERROR("No parameter /sot_controller/velocity_controler_pd_motor_init");
     return false;
   }
 
@@ -660,6 +721,7 @@ namespace sot_controller
       return false;
     
     readParamsEffortControlPDMotorControlData(robot_nh);
+    readParamsVelocityControlPDMotorControlData(robot_nh);
     readParamsPositionControlData(robot_nh);
     return true;
   }
@@ -675,27 +737,33 @@ namespace sot_controller
     for (unsigned int i=0;i<nbDofs_;i++)
       {
 	bool notok=true;
-	
+
 	while (notok)
 	  {
 	    std::string &joint_name = joints_name_[i];
 	    try 
 	      {
 		JointSotHandle &aJointSotHandle = joints_[joint_name];
-		if (aJointSotHandle.ros_control_mode==POSITION)
-		  {
+                switch (aJointSotHandle.ros_control_mode)
+                {
+                  case POSITION:
 		    aJointSotHandle.joint = pos_iface_->getHandle(joint_name);
 		    if (verbosity_level_>0)
 		      ROS_INFO_STREAM("Found joint " << joint_name << " in position "
 				      << i << " " << aJointSotHandle.joint.getName());
-		  }
-		else if (aJointSotHandle.ros_control_mode==EFFORT)
-		  {
-		    aJointSotHandle.joint = effort_iface_->getHandle(joint_name);
+                    break;
+                  case VELOCITY:
+		    aJointSotHandle.joint = vel_iface_->getHandle(joint_name);
 		    if (verbosity_level_>0)
-		      ROS_INFO_STREAM("Found joint " << joint_name << " in effort "
+		      ROS_INFO_STREAM("Found joint " << joint_name << " in velocity "
 				      << i << " " << aJointSotHandle.joint.getName());
-		  }
+                    break;
+                  case EFFORT:
+                    aJointSotHandle.joint = effort_iface_->getHandle(joint_name);
+                    if (verbosity_level_>0)
+                      ROS_INFO_STREAM("Found joint " << joint_name << " in effort "
+                          << i << " " << aJointSotHandle.joint.getName());
+                }
 
 		// throws on failure
 		notok=false;
@@ -1011,6 +1079,44 @@ namespace sot_controller
 	    aJoint.setCommand(local_command);
 	  }
       }
+  }
+
+  void RCSotController::
+  localStandbyVelocityControlMode(const ros::Duration& period)
+  {
+    static bool first_time=true;
+    
+    /// Iterate over all the joints
+    for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
+      {
+        /// Find the joint
+        std::string joint_name = joints_name_[idJoint];
+	std::map<std::string,ControlPDMotorControlData>::iterator
+	  search_ecpd = velocity_mode_pd_motors_.find(joint_name);
+             
+	if (search_ecpd!=velocity_mode_pd_motors_.end())
+	  {
+	    ControlPDMotorControlData & ecpdcdata = search_ecpd->second;
+	    JointSotHandle &aJointSotHandle = joints_[joint_name];
+	    lhi::JointHandle &aJoint = aJointSotHandle.joint;
+
+	    double vel_err = 0 - aJoint.getVelocity();
+	    double err = aJointSotHandle.desired_init_pose - aJoint.getPosition();
+	    
+	    double local_command = ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
+		    
+	    aJoint.setCommand(local_command);
+	    
+	    assert(aJoint.getName() == joint_name);
+	    if (first_time)
+	      if (verbosity_level_>1) {
+		ROS_INFO("Control joint %s (id %d) to %f\n",
+			 joint_name.c_str(),idJoint,
+			 aJoint.getPosition());
+	      }
+	  }
+      }
+    first_time=false;
   }
   
   void RCSotController::

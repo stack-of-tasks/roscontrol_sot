@@ -100,6 +100,9 @@ namespace sot_controller
     /// \brief Interface to the joints controlled in position.
     lhi::PositionJointInterface * pos_iface_;
 
+    /// \brief Interface to the joints controlled in position.
+    lhi::VelocityJointInterface * vel_iface_;
+
     /// \brief Interface to the joints controlled in force.
     lhi::EffortJointInterface * effort_iface_;
 
@@ -127,6 +130,10 @@ namespace sot_controller
     /// \brief Implement a PD controller for the robot when the dynamic graph
     /// is not on.
     std::map<std::string, ControlPDMotorControlData> effort_mode_pd_motors_;
+
+    /// \brief Implement a PD controller for the robot when the dynamic graph
+    /// is not on.
+    std::map<std::string, ControlPDMotorControlData> velocity_mode_pd_motors_;
 
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
@@ -218,6 +225,9 @@ namespace sot_controller
     /// \brief Read the control mode.
     bool readParamsControlMode(ros::NodeHandle & robot_nh);
 
+    /// \brief Read the PID information of the robot in velocity mode.
+    bool readParamsVelocityControlPDMotorControlData(ros::NodeHandle &robot_nh);
+
     /// \brief Read the PID information of the robot in effort mode.
     bool readParamsEffortControlPDMotorControlData(ros::NodeHandle &robot_nh);
 
@@ -257,6 +267,8 @@ namespace sot_controller
     ///@{ Control the robot while waiting for the SoT
     /// Default control in effort.
     void localStandbyEffortControlMode(const ros::Duration& period);
+    /// Default control in velocity.
+    void localStandbyVelocityControlMode(const ros::Duration& period);
     /// Default control in position.
     void localStandbyPositionControlMode();
 
