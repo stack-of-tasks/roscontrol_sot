@@ -569,46 +569,41 @@ namespace sot_controller
   {
     std::string scontrol_mode;
     static const std::string seffort("EFFORT"),svelocity("VELOCITY"),sposition("POSITION");
-    static const std::string str_control_mode[2] =
-      {"ros_control_mode","sot_control_mode"};
+    static const std::string ros_control_mode = "ros_control_mode";
 
     /// Read the list of control_mode
     ros::NodeHandle rnh_ns("/sot_controller/control_mode/"+joint_name);
     
-    for(unsigned int i=0;i<2;i++)
+    ControlMode joint_control_mode;
+    if (!rnh_ns.getParam(ros_control_mode,scontrol_mode))
       {
-	ControlMode joint_control_mode;
-	if (!rnh_ns.getParam(str_control_mode[i],scontrol_mode))
-	  {
-	    ROS_ERROR("%d No %s for %s - We found %s",i,
-		      str_control_mode[i].c_str(),
-		      joint_name.c_str(),
-		      scontrol_mode.c_str());
-	    return false;
-	  }
-
-	if      (scontrol_mode==sposition)
-	  joint_control_mode=POSITION;
-        else if (scontrol_mode==svelocity)
-	  joint_control_mode=VELOCITY;
-        else if (scontrol_mode==seffort)
-	  joint_control_mode=EFFORT;
-        else {
-	  ROS_ERROR("%d %s for %s not understood. Expected %s, %s or %s. Got %s",i,
-		    str_control_mode[i].c_str(),
-		    joint_name.c_str(),
-                    sposition.c_str(),
-                    svelocity.c_str(),
-                    seffort.c_str(),
-		    scontrol_mode.c_str());
-          return false;
-        }
-
-	if (i==0)
-	  aJointSotHandle.ros_control_mode = joint_control_mode;
-	else if (i==1)
-	  aJointSotHandle.sot_control_mode = joint_control_mode;
+        ROS_ERROR("No %s for %s - We found %s",
+    	      ros_control_mode.c_str(),
+    	      joint_name.c_str(),
+    	      scontrol_mode.c_str());
+        return false;
       }
+    
+    if      (scontrol_mode==sposition)
+      joint_control_mode=POSITION;
+    else if (scontrol_mode==svelocity)
+      joint_control_mode=VELOCITY;
+    else if (scontrol_mode==seffort)
+      joint_control_mode=EFFORT;
+    else {
+      ROS_ERROR("%s for %s not understood. Expected %s, %s or %s. Got %s",
+    	    ros_control_mode.c_str(),
+    	    joint_name.c_str(),
+                sposition.c_str(),
+                svelocity.c_str(),
+                seffort.c_str(),
+    	    scontrol_mode.c_str());
+      return false;
+    }
+    
+    aJointSotHandle.ros_control_mode = joint_control_mode;
+    //aJointSotHandle.sot_control_mode = joint_control_mode;
+
     return true;
   }
 

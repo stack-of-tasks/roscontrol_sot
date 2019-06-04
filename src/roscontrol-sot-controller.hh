@@ -55,7 +55,10 @@ namespace sot_controller
   {
     lhi::JointHandle joint;
     double desired_init_pose;
-    ControlMode sot_control_mode;
+    // This should not be handled in roscontrol_sot package. The control type
+    // should be handled in SoT directly, by externalizing the integration from
+    // the Device.
+    //ControlMode sot_control_mode;
     ControlMode ros_control_mode;
   };
 
