@@ -41,6 +41,8 @@ namespace rc_sot_system {
     std::vector<double> motor_currents;
     // Measured temperatures
     std::vector<double> temperatures;
+    // Control
+    std::vector<double> controls;
 
     // Timestamp
     std::vector<double> timestamp;
