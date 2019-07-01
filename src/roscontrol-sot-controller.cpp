@@ -1018,7 +1018,9 @@ namespace sot_controller
 	    i<command_.size();++i)
 	  {
 	    joints_[joints_name_[i]].joint.setCommand(command_[i]);
-	  }
+            DataOneIter_.controls[i] = command_[i];
+          }
+
       }
     else
       ROS_INFO_STREAM("no control.");

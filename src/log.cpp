@@ -30,6 +30,7 @@ void DataToLog::init(ProfileLog &aProfileLog)
   gyrometer.resize(3*aProfileLog.length);
   force_sensors.resize(aProfileLog.nbForceSensors*6*aProfileLog.length);
   temperatures.resize(aProfileLog.nbDofs*aProfileLog.length);
+  controls.resize(aProfileLog.nbDofs*aProfileLog.length);
   timestamp.resize(aProfileLog.length);
   duration.resize(aProfileLog.length);
 
@@ -79,6 +80,8 @@ void Log::record(DataToLog &aDataToLog)
 	StoredData_.motor_currents[JointID+lref_]= aDataToLog.motor_currents[JointID];
       if (aDataToLog.temperatures.size()>JointID)
 	StoredData_.temperatures[JointID+lref_]= aDataToLog.temperatures[JointID];
+      if (aDataToLog.controls.size()>JointID)
+	StoredData_.controls[JointID+lref_]= aDataToLog.controls[JointID];
     }
   for(unsigned int axis=0;axis<3;axis++)
     {
@@ -156,6 +159,9 @@ void Log::save(std::string &fileName)
 
   suffix = "-temperatures.log";
   saveVector(fileName,suffix,StoredData_.temperatures, profileLog_.nbDofs);
+
+  suffix = "-controls.log";
+  saveVector(fileName,suffix,StoredData_.controls, profileLog_.nbDofs);
 
   suffix = "-duration.log";
   saveVector(fileName,suffix,StoredData_.duration, 1);
