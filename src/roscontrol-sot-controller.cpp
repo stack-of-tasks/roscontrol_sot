@@ -1184,6 +1184,7 @@ namespace sot_controller
 	 // Therefore implements a default PD controller on the system.
 	 // Applying both to handle mixed system.
 	 localStandbyEffortControlMode(period);
+         localStandbyVelocityControlMode(period);
 	 localStandbyPositionControlMode();
        }
    }
