@@ -310,12 +310,15 @@ namespace sot_controller
   {
     if (!initJoints()) 
       return false;
-    if (!initIMU())
-      return false;
-    if (!initForceSensors())
-      return false;
-    if (!initTemperatureSensors())
-      return false;
+    if (!initIMU()) {
+      ROS_WARN("could not initialize IMU sensor(s).");
+    }
+    if (!initForceSensors()) {
+      ROS_WARN("could not initialize force sensor(s).");
+    }
+    if (!initTemperatureSensors()) {
+      ROS_WARN("could not initialize temperature sensor(s).");
+    }
 
     // Initialize ros node.
     int argc=1;
@@ -782,6 +785,8 @@ namespace sot_controller
   bool RCSotController::
   initIMU()
   {
+    if (!imu_iface_) return false;
+
     // get all imu sensor names
     const std :: vector<std :: string >& imu_iface_names = imu_iface_->getNames();
     if (verbosity_level_>0)
@@ -800,6 +805,8 @@ namespace sot_controller
   bool RCSotController::
   initForceSensors()
   {
+    if (!ft_iface_) return false;
+
     // get force torque sensors names package.
     const std::vector<std::string>& ft_iface_names = ft_iface_->getNames();
     if (verbosity_level_>0)
@@ -821,6 +828,8 @@ namespace sot_controller
     if (!simulation_mode_)
       {
 #ifdef TEMPERATURE_SENSOR_CONTROLLER
+        if (!act_temp_iface_) return false;
+
 	// get temperature sensors names
 	const std::vector<std::string>& act_temp_iface_names = act_temp_iface_->getNames();
 	
