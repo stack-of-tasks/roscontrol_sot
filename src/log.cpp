@@ -9,7 +9,6 @@
 #include <fstream>
 #include <iomanip>
 
-#include<ros/console.h>
 
 using namespace std;
 using namespace rc_sot_system;
@@ -31,6 +30,7 @@ void DataToLog::init(ProfileLog &aProfileLog)
   gyrometer.resize(3*aProfileLog.length);
   force_sensors.resize(aProfileLog.nbForceSensors*6*aProfileLog.length);
   temperatures.resize(aProfileLog.nbDofs*aProfileLog.length);
+  controls.resize(aProfileLog.nbDofs*aProfileLog.length);
   timestamp.resize(aProfileLog.length);
   duration.resize(aProfileLog.length);
 
@@ -80,13 +80,15 @@ void Log::record(DataToLog &aDataToLog)
 	StoredData_.motor_currents[JointID+lref_]= aDataToLog.motor_currents[JointID];
       if (aDataToLog.temperatures.size()>JointID)
 	StoredData_.temperatures[JointID+lref_]= aDataToLog.temperatures[JointID];
+      if (aDataToLog.controls.size()>JointID)
+	StoredData_.controls[JointID+lref_]= aDataToLog.controls[JointID];
     }
   for(unsigned int axis=0;axis<3;axis++)
     {
       StoredData_.accelerometer[lrefts_*3+axis] = aDataToLog.accelerometer[axis];
       StoredData_.gyrometer[lrefts_*3+axis] = aDataToLog.gyrometer[axis];
     }
-  unsigned width_pad= 6 * profileLog_.nbForceSensors;
+  std::size_t width_pad= 6 * profileLog_.nbForceSensors;
   
   for(unsigned int fsID=0;fsID<profileLog_.nbForceSensors;fsID++)
     {
@@ -158,31 +160,34 @@ void Log::save(std::string &fileName)
   suffix = "-temperatures.log";
   saveVector(fileName,suffix,StoredData_.temperatures, profileLog_.nbDofs);
 
+  suffix = "-controls.log";
+  saveVector(fileName,suffix,StoredData_.controls, profileLog_.nbDofs);
+
   suffix = "-duration.log";
   saveVector(fileName,suffix,StoredData_.duration, 1);
 
 }
 
 inline void writeHeaderToBinaryBuffer (ofstream& of,
-    const unsigned int& nVector,
-    const unsigned int& vectorSize)
+				       const std::size_t& nVector,
+				       const std::size_t& vectorSize)
 {
-  of.write ((char*)&nVector   , sizeof(unsigned int));
-  of.write ((char*)&vectorSize, sizeof(unsigned int));
+  of.write ((const char*)(&nVector)   , sizeof(std::size_t));
+  of.write ((const char*)(&vectorSize), sizeof(std::size_t));
 }
 
 inline void writeToBinaryFile (ofstream& of,
     const double& t, const double& dt,
     const std::vector<double>& data, const std::size_t& idx, const std::size_t& size)
 {
-  of.write ((char*)&t          ,       sizeof(double));
-  of.write ((char*)&dt         ,       sizeof(double));
-  of.write ((char*)(&data[idx]), size*(sizeof(double)));
+  of.write ((const char*)&t          ,       sizeof(double));
+  of.write ((const char*)&dt         ,       sizeof(double));
+  of.write ((const char*)(&data[idx]), size*(sizeof(double)));
 }
 
 void Log::saveVector(std::string &fileName,std::string &suffix,
 		     const std::vector<double> &avector,
-		     unsigned int size)
+		     std::size_t size)
 {
   ostringstream oss;
   oss << fileName;

@@ -14,9 +14,9 @@ namespace rc_sot_system {
 
   struct ProfileLog
   {
-    unsigned int nbDofs;
-    unsigned int nbForceSensors;
-    unsigned int length;
+    std::size_t nbDofs;
+    std::size_t nbForceSensors;
+    std::size_t length;
   };
   
   struct DataToLog
@@ -41,6 +41,8 @@ namespace rc_sot_system {
     std::vector<double> motor_currents;
     // Measured temperatures
     std::vector<double> temperatures;
+    // Control
+    std::vector<double> controls;
 
     // Timestamp
     std::vector<double> timestamp;
@@ -51,9 +53,9 @@ namespace rc_sot_system {
     
     DataToLog();
     void init(ProfileLog &aProfileLog);
-    unsigned int nbDofs() { return profileLog_.nbDofs;}
-    unsigned int nbForceSensors() { return profileLog_.nbForceSensors;}
-    unsigned int length() { return profileLog_.length;}
+    std::size_t nbDofs() { return profileLog_.nbDofs;}
+    std::size_t nbForceSensors() { return profileLog_.nbForceSensors;}
+    std::size_t length() { return profileLog_.length;}
 
   };
 
@@ -80,7 +82,7 @@ namespace rc_sot_system {
     void saveVector(std::string &filename, 
 		    std::string &suffix,
 		    const std::vector<double> &avector,
-		    unsigned int);
+		    std::size_t);
 
   public:
   
@@ -95,4 +97,10 @@ namespace rc_sot_system {
 
   };
 }
+
+#pragma GCC diagnostic push
+#pragma GCC system_header
+#include<ros/console.h>
+#pragma GCC diagnostic pop
+
 #endif /* _RC_SOT_SYSTEM_LOG_H_ */

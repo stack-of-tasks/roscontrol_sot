@@ -20,13 +20,13 @@ find_package(PkgConfig REQUIRED)
 add_required_dependency(bullet)
 add_required_dependency("urdfdom")
 
-#set(bullet_FOUND 0)
-#pkg_check_modules(bullet REQUIRED bullet)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  pal_hardware_interfaces
+  controller_interface  
   roscpp
   rospy
   std_msgs
@@ -34,8 +34,6 @@ find_package(catkin REQUIRED COMPONENTS
   control_msgs
   sensor_msgs
   realtime_tools
-  controller_interface
-  pal_hardware_interfaces
 )
 
 ## LAAS cmake submodule part
@@ -57,12 +55,12 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
 
 # Add dependency through jrl-cmakemodules to compile
 # this code without catkin_make
+add_required_dependency("pal_hardware_interfaces")
+add_optional_dependency("temperature_sensor_controller")
 add_required_dependency(roscpp)
 add_required_dependency("realtime_tools >= 1.8")
 add_required_dependency("dynamic_graph_bridge")
 add_required_dependency("controller_interface")
-add_required_dependency("pal_hardware_interfaces")
-add_optional_dependency("temperature_sensor_controller")
 add_required_dependency("pal_common_msgs")
 add_required_dependency("dynamic-graph")
 
@@ -113,8 +111,8 @@ target_link_libraries(rcsot_controller
   ${bullet_LIBRARIES}
   )
 
-pkg_config_use_dependency(rcsot_controller urdfdom)
-pkg_config_use_dependency(rcsot_controller dynamic-graph)
+pkg_config_use_dependency(rcsot_controller urdfdom optional NO_INCLUDE_SYSTEM)
+pkg_config_use_dependency(rcsot_controller dynamic-graph optional NO_INCLUDE_SYSTEM)
 
 ## Mark executables and/or libraries for installation
 install(TARGETS rcsot_controller DESTINATION lib )

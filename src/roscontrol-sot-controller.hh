@@ -8,11 +8,15 @@
 #include <string>
 #include <map>
 
+#pragma GCC diagnostic push
+#pragma GCC system_header
 #include <controller_interface/controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
 #include <pal_hardware_interfaces/actuator_temperature_interface.h>
+#include <pluginlib/class_list_macros.h>
+#pragma GCC diagnostic pop
 
 #include <dynamic_graph_bridge/sot_loader_basic.hh>
 #include <ros/ros.h>
@@ -26,7 +30,9 @@
 
 namespace sot_controller
 {
-  enum SotControlMode { POSITION, EFFORT};
+  enum ControlMode { POSITION, VELOCITY, EFFORT};
+  namespace lhi = hardware_interface;
+  namespace lci = controller_interface;
 
   class XmlrpcHelperException : public ros::Exception
   {
@@ -36,21 +42,27 @@ namespace sot_controller
   };
 
 
-  struct EffortControlPDMotorControlData
+  struct ControlPDMotorControlData
   {
     control_toolbox::Pid pid_controller;
 
-    //double p_gain,d_gain,i_gain;
-    double prev;
-    double vel_prev;
-    double des_pos;
-    double integ_err;
-
-    EffortControlPDMotorControlData();
+    ControlPDMotorControlData();
     //    void read_from_xmlrpc_value(XmlRpc::XmlRpcValue &aXRV);
     void read_from_xmlrpc_value(const std::string &prefix);
   };
 
+  struct JointSotHandle
+  {
+    lhi::JointHandle joint;
+    double desired_init_pose;
+    // This should not be handled in roscontrol_sot package. The control type
+    // should be handled in SoT directly, by externalizing the integration from
+    // the Device.
+    //ControlMode sot_control_mode;
+    ControlMode ros_control_mode;
+  };
+
+  typedef std::map<std::string,JointSotHandle>::iterator it_joint_sot_h;
 #ifndef CONTROLLER_INTERFACE_KINETIC
   typedef std::set<std::string> ClaimedResources;
 #endif
@@ -58,9 +70,6 @@ namespace sot_controller
      This class encapsulates the Stack of Tasks inside the ros-control infra-structure.
 
    */
-  namespace lhi = hardware_interface;
-  namespace lci = controller_interface;
-
   class RCSotController : public lci::ControllerBase,
 			       SotLoaderBasic
   {
@@ -76,7 +85,7 @@ namespace sot_controller
     /// @{ \name Ros-control related fields
 
     /// \brief Vector of joint handles.
-    std::vector<lhi::JointHandle> joints_;
+    std::map<std::string,JointSotHandle> joints_;
     std::vector<std::string> joints_name_;
 
     /// \brief Vector towards the IMU.
@@ -93,6 +102,9 @@ namespace sot_controller
 
     /// \brief Interface to the joints controlled in position.
     lhi::PositionJointInterface * pos_iface_;
+
+    /// \brief Interface to the joints controlled in position.
+    lhi::VelocityJointInterface * vel_iface_;
 
     /// \brief Interface to the joints controlled in force.
     lhi::EffortJointInterface * effort_iface_;
@@ -118,15 +130,13 @@ namespace sot_controller
     /// \brief Adapt the interface to Gazebo simulation
     bool simulation_mode_;
 
-    /// \brief The robot can controlled in effort or position mode (default).
-    SotControlMode control_mode_;
+    /// \brief Implement a PD controller for the robot when the dynamic graph
+    /// is not on.
+    std::map<std::string, ControlPDMotorControlData> effort_mode_pd_motors_;
 
     /// \brief Implement a PD controller for the robot when the dynamic graph
     /// is not on.
-    std::map<std::string, EffortControlPDMotorControlData> effort_mode_pd_motors_;
-
-    /// \brief Give the desired position when the dynamic graph is not on.
-    std::vector<double> desired_init_pose_;
+    std::map<std::string, ControlPDMotorControlData> velocity_mode_pd_motors_;
 
     /// \brief Map from ros-control quantities to robot device
     /// ros-control quantities are for the sensors:
@@ -179,8 +189,6 @@ namespace sot_controller
     void starting(const ros::Time&);
     /// \brief Stopping the control
     void stopping(const ros::Time&);
-    /// \brief Display the kind of hardware interface that this controller is using.
-    virtual std::string getHardwareInterfaceType() const;
 
   protected:
     /// Initialize the roscontrol interfaces
@@ -219,6 +227,9 @@ namespace sot_controller
 
     /// \brief Read the control mode.
     bool readParamsControlMode(ros::NodeHandle & robot_nh);
+
+    /// \brief Read the PID information of the robot in velocity mode.
+    bool readParamsVelocityControlPDMotorControlData(ros::NodeHandle &robot_nh);
 
     /// \brief Read the PID information of the robot in effort mode.
     bool readParamsEffortControlPDMotorControlData(ros::NodeHandle &robot_nh);
@@ -259,6 +270,8 @@ namespace sot_controller
     ///@{ Control the robot while waiting for the SoT
     /// Default control in effort.
     void localStandbyEffortControlMode(const ros::Duration& period);
+    /// Default control in velocity.
+    void localStandbyVelocityControlMode(const ros::Duration& period);
     /// Default control in position.
     void localStandbyPositionControlMode();
 
@@ -285,6 +298,13 @@ namespace sot_controller
 
     /// Read URDF model from /robot_description parameter.
     bool readUrdf(ros::NodeHandle &robot_nh);
+
+    /// Returns control mode by reading rosparam.
+    /// It reads /sot_controller/control_mode/joint_name
+    /// and check 
+    bool
+    getJointControlMode(std::string &joint_name,
+			JointSotHandle &aJointSotHandle);
   };
 }
 
