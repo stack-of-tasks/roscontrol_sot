@@ -1202,6 +1202,16 @@ namespace sot_controller
        }
      else
        {
+         /// Update the sensors.
+         fillSensors();
+
+         /// Generate a control law.
+         try
+         {
+           sotController_->nominalSetSensors(sensorsIn_);
+         }
+         catch(std::exception &e) { throw e;}
+
 	 // But in effort mode it means that we are sending 0
 	 // Therefore implements a default PD controller on the system.
 	 // Applying both to handle mixed system.
