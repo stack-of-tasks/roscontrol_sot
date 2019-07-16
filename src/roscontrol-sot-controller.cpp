@@ -252,6 +252,7 @@ namespace sot_controller
       
     // Return which resources are claimed by this controller
     pos_iface_->clearClaims();
+    vel_iface_->clearClaims();
     effort_iface_->clearClaims();
     
     if (! init())
@@ -270,20 +271,25 @@ namespace sot_controller
       demangledTypeName<PositionJointInterface>();
     iface_res.resources = pos_iface_->getClaims();
     claimed_resources.push_back(iface_res);
-    
-    /// Display claimed ressources
-    if (verbosity_level_>0)
-      displayClaimedResources(claimed_resources);
-    pos_iface_->clearClaims();
+
+    iface_res.hardware_interface =
+      hardware_interface::internal::
+      demangledTypeName<VelocityJointInterface>();
+    iface_res.resources = vel_iface_->getClaims();
+    claimed_resources.push_back(iface_res);
 
     iface_res.hardware_interface =
       hardware_interface::internal::
       demangledTypeName<EffortJointInterface>();
     iface_res.resources = effort_iface_->getClaims();
     claimed_resources.push_back(iface_res);
+
+    /// Display claimed ressources
     if (verbosity_level_>0)
       displayClaimedResources(claimed_resources);
-    
+
+    pos_iface_->clearClaims();
+    vel_iface_->clearClaims();
     effort_iface_->clearClaims();
 #else
     claimed_resources = pos_iface_->getClaims();
@@ -291,6 +297,12 @@ namespace sot_controller
     if (verbosity_level_>0)
       displayClaimedResources(claimed_resources);
     pos_iface_->clearClaims();
+
+    claimed_resources = vel_iface_->getClaims();
+    /// Display claimed ressources
+    if (verbosity_level_>0)
+      displayClaimedResources(claimed_resources);
+    vel_iface_->clearClaims();
 
     claimed_resources = effort_iface_->getClaims();
     if (verbosity_level_>0)
@@ -622,10 +634,11 @@ namespace sot_controller
 	for(unsigned int idJoint=0;idJoint<joints_name_.size();idJoint++)
 	  {
 	    std::string joint_name = joints_name_[idJoint];
-	    ROS_INFO("joint_name[%d]=%s",idJoint,joint_name.c_str());
 	    JointSotHandle &aJoint = joints_[joint_name];
 	    if (!getJointControlMode(joint_name,aJoint))
 	      return false;
+	    ROS_INFO("joint_name[%d]=%s, control_mode=%d",
+                idJoint,joint_name.c_str(),aJoint.ros_control_mode);
 	  }
       }
     else
