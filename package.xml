@@ -42,6 +42,7 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>realtime_tools</build_depend>
   <build_depend>controller_interface</build_depend>
+  <build_depend>controller_manager</build_depend>
   <build_depend>cmake_modules</build_depend>
   <build_depend>dynamic_graph_bridge</build_depend>
   <build_depend>pal_hardware_interfaces</build_depend>
@@ -54,6 +55,7 @@
   <run_depend>pluginlib</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>controller_interface</run_depend>
+  <run_depend>controller_manager</run_depend>
   <run_depend>cmake_modules</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>dynamic_graph_bridge</run_depend>
