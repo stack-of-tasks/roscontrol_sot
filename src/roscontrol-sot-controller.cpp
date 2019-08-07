@@ -1051,6 +1051,16 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
   } else {
     /// Update the sensors.
     fillSensors();
+    try {
+      sotController_->setupSetSensors(sensorsIn_);
+    } catch(std::exception &e) { throw e;}
+  }
+    
+  void RCSotController::
+  stopping(const ros::Time &)
+  {
+    std::string afilename("/tmp/sot.log");
+    RcSotLog_.save(afilename);
 
     /// Generate a control law.
     try {
