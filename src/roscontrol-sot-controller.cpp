@@ -1228,6 +1228,9 @@ namespace sot_controller
     RealTimeLogger::instance().addOutputStream(LoggerStreamPtr_t(new LoggerROSStream()));
 
     fillSensors();
+    try {
+      sotController_->setupSetSensors(sensorsIn_);
+    } catch(std::exception &e) { throw e;}
   }
     
   void RCSotController::
