@@ -20,23 +20,20 @@
 
 #include "sot-test-device.hh"
 #include <dynamic_graph_bridge/ros_interpreter.hh>
-namespace dgsot=dynamicgraph::sot;
+namespace dgsot = dynamicgraph::sot;
 
-class SoTTestController: public 
-  dgsot::AbstractSotExternalInterface
-{
+class SoTTestController : public dgsot::AbstractSotExternalInterface {
  public:
-
   static const std::string LOG_PYTHON;
-  
+
   SoTTestController();
   SoTTestController(const char robotName[]);
   SoTTestController(std::string robotName);
   virtual ~SoTTestController();
 
-  void setupSetSensors(std::map<std::string,dgsot::SensorValues> &sensorsIn);
+  void setupSetSensors(std::map<std::string, dgsot::SensorValues> &sensorsIn);
 
-  void nominalSetSensors(std::map<std::string,dgsot::SensorValues> &sensorsIn);
+  void nominalSetSensors(std::map<std::string, dgsot::SensorValues> &sensorsIn);
 
   void cleanupSetSensors(std::map<std::string, dgsot::SensorValues> &sensorsIn);
 
@@ -52,17 +49,15 @@ class SoTTestController: public
   // Update output port with the control computed from the
   // dynamic graph.
   void updateRobotState(std::vector<double> &anglesIn);
-  
-  void runPython(std::ostream& file,
-		 const std::string& command,
-		 dynamicgraph::Interpreter& interpreter);
-  
+
+  void runPython(std::ostream &file, const std::string &command,
+                 dynamicgraph::Interpreter &interpreter);
+
   virtual void startupPython();
-    
+
   void init();
 
-  SoTTestDevice * device_;
+  SoTTestDevice *device_;
 };
 
 #endif /* _SOT_TestController_H_ */
-

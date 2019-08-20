@@ -2,7 +2,7 @@
  * Copyright: LAAS CNRS, 2019
  * Author: O. Stasse
  * LICENSE: See LICENSE.txt
- * 
+ *
  */
 
 #pragma GCC diagnostic push
