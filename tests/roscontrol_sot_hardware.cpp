@@ -1,12 +1,9 @@
-/*Sources : 
- * https://github.com/jhu-lcsr-attic/barrett_control/blob/libbarrett/
- barrett_hw/src/wam_server.cpp
- * http://www.ensta-bretagne.fr/lemezo/files/teaching/ROS/TP1.pdf
- * http://homepages.laas.fr/ostasse/Teaching/ROS/rosintro.pdf
- * https://github.com/ros-controls/ros_control/wiki/hardware_interface
- # To compile :g++ ros_hardware.cpp -o ros_harware -I/opt/ros/kinetic/include
- -L/opt/ros/kinetic/lib
-*/
+/*
+ * Copyright: LAAS CNRS, 2019
+ * Author: O. Stasse
+ * LICENSE: See LICENSE.txt
+ * 
+ */
 #include <iostream>
 #include <sstream>
 
@@ -15,7 +12,7 @@
 
 //Threads
 void *RTloop(void *argument);
-void *ROSloop(void *argument);
+
 pthread_mutex_t mutx = PTHREAD_MUTEX_INITIALIZER; //mutex initialisation
 //******************************************************
 
@@ -34,63 +31,104 @@ public:
   {
     /// connect and register the joint state interface
     hardware_interface::JointStateHandle
-      state_handle_base("base", &pos_[0], &vel_[0], &eff_[0]);
-    jnt_state_interface_.registerHandle(state_handle_base);
+#ifndef TEMPERATURE_SENSOR_CONTROLLER
+      state_handle_arm_1("arm_1_joint", &pos_[0], &vel_[0], &eff_[0]);
+#else
+      state_handle_arm_1("arm_1_joint", &pos_[0], &vel_[0], &eff_[0],
+                         &abs_pos_[0], &abs_torque_[0]);
+#endif
+    jnt_state_interface_.registerHandle(state_handle_arm_1);
 
     hardware_interface::JointStateHandle
-      state_handle_Head("Head", &pos_[1], &vel_[1], &eff_[1]);
-    jnt_state_interface_.registerHandle(state_handle_Head);
+#ifndef TEMPERATURE_SENSOR_CONTROLLER
+      state_handle_arm_2("arm_2_joint", &pos_[1], &vel_[1], &eff_[1]);
+#else
+      state_handle_arm_2("arm_2_joint", &pos_[1], &vel_[1], &eff_[1],
+                         &abs_pos_[1], &abs_torque_[1]);
+#endif
+    
+    jnt_state_interface_.registerHandle(state_handle_arm_2);
 
     hardware_interface::JointStateHandle
-      state_handle_Neck("Neck", &pos_[2], &vel_[2], &eff_[2]);
-    jnt_state_interface_.registerHandle(state_handle_Neck);
+#ifndef TEMPERATURE_SENSOR_CONTROLLER
+      state_handle_arm_3("arm_3_joint", &pos_[2], &vel_[2], &eff_[2]);
+#else
+      state_handle_arm_3("arm_3_joint", &pos_[2], &vel_[2], &eff_[2],
+                         &abs_pos_[2], &abs_torque_[2]);
+#endif
+    
+    jnt_state_interface_.registerHandle(state_handle_arm_3);
 
     hardware_interface::JointStateHandle
-      state_handle_RArm("Rarm", &pos_[3], &vel_[3], &eff_[3]);
-    jnt_state_interface_.registerHandle(state_handle_RArm);
+#ifndef TEMPERATURE_SENSOR_CONTROLLER
+      state_handle_arm_4("arm_4_joint", &pos_[3], &vel_[3], &eff_[3]);
+#else
+      state_handle_arm_4("arm_4_joint", &pos_[3], &vel_[3], &eff_[3],
+                         &abs_pos_[3], &abs_torque_[3]);
+#endif
+    
+    jnt_state_interface_.registerHandle(state_handle_arm_4);
 
     hardware_interface::JointStateHandle
-      state_handle_LArm("Larm", &pos_[4], &vel_[4], &eff_[4]);
-    jnt_state_interface_.registerHandle(state_handle_LArm);
+#ifndef TEMPERATURE_SENSOR_CONTROLLER
+      state_handle_arm_5("arm_5_joint", &pos_[4], &vel_[4], &eff_[4]);
+#else
+      state_handle_arm_5("arm_5_joint", &pos_[4], &vel_[4], &eff_[4],
+                         &abs_pos_[4], &abs_torque_[4]);
+#endif
+    
+    jnt_state_interface_.registerHandle(state_handle_arm_5);
 
     hardware_interface::JointStateHandle
-      state_handle_RHip("RHip", &pos_[5], &vel_[5], &eff_[5]);
-    jnt_state_interface_.registerHandle(state_handle_RHip);
+#ifndef TEMPERATURE_SENSOR_CONTROLLER
+      state_handle_arm_6("arm_6_joint", &pos_[5], &vel_[5], &eff_[5]);
+#else
+      state_handle_arm_6("arm_6_joint", &pos_[5], &vel_[5], &eff_[5],
+                         &abs_pos_[5], &abs_torque_[5]);
+#endif
+    
+    jnt_state_interface_.registerHandle(state_handle_arm_6);
 
     hardware_interface::JointStateHandle
-      state_handle_LHip("LHip", &pos_[6], &vel_[6], &eff_[6]);
-    jnt_state_interface_.registerHandle(state_handle_LHip);
+#ifndef TEMPERATURE_SENSOR_CONTROLLER        
+      state_handle_arm_7("arm_7_joint", &pos_[6], &vel_[6], &eff_[6]);
+#else
+      state_handle_arm_7("arm_7_joint", &pos_[6], &vel_[6], &eff_[6],
+                         &abs_pos_[6], &abs_torque_[6]);
+#endif
+    
+    jnt_state_interface_.registerHandle(state_handle_arm_7);
 
     registerInterface(&jnt_state_interface_);
 
     /// connect and register the joint position interface
-    hardware_interface::JointHandle pos_handle_base
-      (jnt_state_interface_.getHandle("base"), &cmd_[0]);
-    jnt_pos_interface_.registerHandle(pos_handle_base);
+    hardware_interface::JointHandle pos_handle_arm_1
+      (jnt_state_interface_.getHandle("arm_1_joint"), &cmd_[0]);
+    jnt_pos_interface_.registerHandle(pos_handle_arm_1);
 
-    hardware_interface::JointHandle pos_handle_Head
-      (jnt_state_interface_.getHandle("Head"), &cmd_[1]);
-    jnt_pos_interface_.registerHandle(pos_handle_Head);
+    hardware_interface::JointHandle pos_handle_arm_2
+      (jnt_state_interface_.getHandle("arm_2_joint"), &cmd_[1]);
+    jnt_pos_interface_.registerHandle(pos_handle_arm_2);
 
-    hardware_interface::JointHandle pos_handle_Neck
-      (jnt_state_interface_.getHandle("Neck"), &cmd_[2]);
-    jnt_pos_interface_.registerHandle(pos_handle_Neck);
+    hardware_interface::JointHandle pos_handle_arm_3
+      (jnt_state_interface_.getHandle("arm_3_joint"), &cmd_[2]);
+    jnt_pos_interface_.registerHandle(pos_handle_arm_3);
 
-    hardware_interface::JointHandle pos_handle_RArm
-      (jnt_state_interface_.getHandle("Rarm"), &cmd_[3]);
-    jnt_pos_interface_.registerHandle(pos_handle_RArm);
+    hardware_interface::JointHandle pos_handle_arm_4
+      (jnt_state_interface_.getHandle("arm_4_joint"), &cmd_[3]);
+    jnt_pos_interface_.registerHandle(pos_handle_arm_4);
 
-    hardware_interface::JointHandle pos_handle_LArm
-      (jnt_state_interface_.getHandle("Larm"), &cmd_[4]);
-    jnt_pos_interface_.registerHandle(pos_handle_LArm);
+    hardware_interface::JointHandle pos_handle_arm_5
+      (jnt_state_interface_.getHandle("arm_5_joint"), &cmd_[4]);
+    jnt_pos_interface_.registerHandle(pos_handle_arm_5);
 
-    hardware_interface::JointHandle pos_handle_RHip
-      (jnt_state_interface_.getHandle("RHip"), &cmd_[5]);
-    jnt_pos_interface_.registerHandle(pos_handle_RHip);
+    hardware_interface::JointHandle pos_handle_arm_6
+      (jnt_state_interface_.getHandle("arm_6_joint"), &cmd_[5]);
+    jnt_pos_interface_.registerHandle(pos_handle_arm_6);
 
-    hardware_interface::JointHandle pos_handle_LHip
-      (jnt_state_interface_.getHandle("LHip"), &cmd_[6]);
-    jnt_pos_interface_.registerHandle(pos_handle_LHip);
+    hardware_interface::JointHandle pos_handle_arm_7
+      (jnt_state_interface_.getHandle("arm_7_joint"), &cmd_[6]);
+    jnt_pos_interface_.registerHandle(pos_handle_arm_7);
 
     registerInterface(&jnt_pos_interface_);
 
@@ -130,26 +168,32 @@ private:
   double pos_[7];
   double vel_[7];
   double eff_[7];
+  double abs_pos_[7];
+  double abs_torque_[7];
 };
 
 int TestRobot01Class::ReadWrite()
 {
+  return 0;
 }
 
 int TestRobot01Class::UpdateImu()
 {
+  return 0;
 }
 
 /* get position from STM32 */
 int TestRobot01Class::UpdateSensor()
 {
+  
   // Write pos
+  return 0;
 }
 
 /* get cmd from ROS */
 int TestRobot01Class::UpdateCmd()
 {
-
+  return 0;
   // Read cmd.
 }
 
@@ -167,7 +211,21 @@ void *RTloop(void *argument)
 
   ros::Time last_time = ros::Time::now();
 
-  while (ros::ok) /// Boucle tant que le master existe (ros::ok())
+  pthread_t thread1;
+  
+  struct sched_param params1;
+  params1.sched_priority = 90;
+  // 1(low) to 99(high)
+  thread1 = pthread_self();
+  //  int error_return =
+  pthread_setschedparam(thread1, SCHED_RR, &params1);
+
+  unsigned int nb_it = 0;
+  while (ros::ok()
+         //&& (nb_it < 100)
+         )
+    /// Boucle tant que le master existe (ros::ok())
+    /// and nb_it < 100
     {
       pthread_mutex_lock(&mutx); // On verrouille les variables pour ce thread
 
@@ -188,21 +246,13 @@ void *RTloop(void *argument)
       pthread_mutex_unlock(&mutx); // On deverrouille les variables
       /// Pause
       usleep(10000); //100HZ
-        
+      nb_it++;
+      //      std::cout << "nb_it: " << nb_it << "\n"; 
     }
+  ros::shutdown();
   pthread_exit(EXIT_SUCCESS);
 }
 
-void *ROSloop(void *argument)
-{
-  ROS_INFO("IN thread2 OK");
-  ros::Rate loop_rate(10); /// Frequence boucle en Hz
-  while (ros::ok) // NOT real time loop
-    {
-      loop_rate.sleep();
-    }
-  pthread_exit(EXIT_SUCCESS);
-}
 
 int main(int argc, char *argv[])
 {
@@ -220,41 +270,19 @@ int main(int argc, char *argv[])
   aRTloopArgs.cm = &cm;
   aRTloopArgs.testrobot01 = &testrobot01;
 
-  /*---------------- Initialisation moteurs ------------------ */
-  ROS_INFO("Starting in 5s");
-  ROS_INFO("-------------------------------- 5");
-  sleep(1);
-  ROS_INFO("------------------------- 4");
-  sleep(1);
-  ROS_INFO("----------------- 3");
-  sleep(1);
-  ROS_INFO("--------- 2");
-  sleep(1);
-  ROS_INFO("--- 1");
-  sleep(1);
-    
+
   /*---------------- Gestion des threads ------------------ */
   /* 
-     Thread "number 1" : Main  
-     Thread "number 2" : Rosloop
-     Thread "number 3" : RTloop
-     Thread "number 4" : spinner
+     Thread "number 1" : Main - spinner
+     Thread "number 2" : RTloop
   */
-  pthread_t thread1;
-  pthread_t thread2; 
   int error_return;
-    
-  struct sched_param params1;
-  params1.sched_priority = 90;
-  // 1(low) to 99(high)
-  error_return = pthread_setschedparam(thread1, SCHED_RR, &params1);
+  pthread_t thread1;
+  
   // function sets the scheduling policy and parameters of the thread
   error_return = pthread_create(&thread1, NULL, RTloop, (void *)
                                 &aRTloopArgs);      // create a new thread
   ROS_INFO("thread1 created OK");
-  error_return = pthread_create(&thread2, NULL, ROSloop,(void *)
-                                &aRTloopArgs);     // create a new thread
-  ROS_INFO("thread2 created OK");
 
   if (error_return)
     {

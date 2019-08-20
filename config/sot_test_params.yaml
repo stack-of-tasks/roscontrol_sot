@@ -1,0 +1,42 @@
+gains:
+  arm_1_joint: {p: 1, d: 0.0, i: 0, i_clamp: 1.5 }
+  arm_2_joint: {p: 1, d: 0.0, i: 0, i_clamp: 1.5 }
+  arm_3_joint: {p: 1, d: 0.0, i: 0, i_clamp: 1.5 }
+  arm_4_joint: {p: 1, d: 0.0, i: 0, i_clamp: 1.5 }
+  arm_5_joint: {p: 1, d: 0.0, i: 0, i_clamp: 1.5 }
+  arm_6_joint: {p: 1, d: 0.0, i: 0, i_clamp: 1.5 }
+  arm_7_joint: {p: 1, d: 0.0, i: 0, i_clamp: 1.5 }
+
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+    
+sot_controller:
+  type: sot_controller/RCSotController
+  libname: libsot-test-controller.so
+  joint_names: [ arm_1_joint, arm_2_joint, arm_3_joint, arm_4_joint,
+               arm_5_joint, arm_6_joint, arm_7_joint
+  ]
+  map_rc_to_sot_device: { motor-angles: motor-angles ,
+  joint-angles: joint-angles, velocities: velocities, forces: forces, currents: currents,
+  torques: torques, cmd-joints: control, cmd-effort: control, accelerometer_0: accelerometer_0, gyrometer_0: gyrometer_0 }
+  control_mode:
+    arm_1_joint:
+      ros_control_mode: POSITION
+    arm_2_joint:
+      ros_control_mode: POSITION
+    arm_3_joint:
+      ros_control_mode: POSITION
+    arm_4_joint:
+      ros_control_mode: POSITION
+    arm_5_joint:
+      ros_control_mode: POSITION
+    arm_6_joint:
+      ros_control_mode: POSITION
+    arm_7_joint:
+      ros_control_mode: POSITION
+
+  dt: 0.001
+  jitter: 0.0004
+  verbosity_level: 25
+  

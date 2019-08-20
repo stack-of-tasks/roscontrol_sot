@@ -1,13 +1,27 @@
 <launch>
 
-  <!-- Sot Controller configuration -->
-  <!-- <rosparam command="load" file="$(find roscontrol_sot_talos)/config/sot_your_robot_params_gazebo.yaml"/> -->
-  <!-- <rosparam command="load" file="$(find roscontrol_sot_talos)/config/sot_your_robot_controller.yaml" /> -->
+  <!-- Load URDF file -->
+  <param name="robot_description" command="$(find xacro)/xacro.py $(find roscontrol_sot)/urdf/test.urdf"  />
   
-  <!-- Spawn walking controller -->
+  <!-- Spawn simulated hardware -->
+  <node name="roscontrol_sot_hardware_spawner"
+        pkg="roscontrol_sot" type="roscontrol_sot_hardware" output="screen"
+        launch-prefix="sudo -EA gdb --args">
+    <env name="SUDO_ASKPASS" value="/usr/bin/ssh-askpass"/>
+  </node>
+
+  <node name="bringup_controllers_hardware_spawner"
+        pkg="controller_manager" type="spawner" output="screen"
+        respawn="false"
+        args="joint_state_controller"/>
+
+  <rosparam command="load" file="$(find roscontrol_sot)/config/sot_test_params.yaml"/>
+
+  <!-- Spawn roscontrol sot -->
   <node name="sot_controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
         args="sot_controller" />
+       
 
 </launch>
 

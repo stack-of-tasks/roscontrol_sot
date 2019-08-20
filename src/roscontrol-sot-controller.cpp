@@ -94,7 +94,8 @@ namespace sot_controller
 	 ++it_claim)
       {
 	hardware_interface::InterfaceResources & aclaim = *it_claim;
-	ROS_INFO_STREAM("Claimed by RCSotController: " << aclaim.hardware_interface);
+	ROS_INFO_STREAM("Claimed by RCSotController: "
+                        << aclaim.hardware_interface);
 	
 	for(std::set<std::string>::iterator
 	      it_set_res=aclaim.resources.begin();
@@ -142,21 +143,22 @@ namespace sot_controller
 	       ros::NodeHandle &controller_nh,
 	       ClaimedResources & claimed_resources)
   {
+    ROS_WARN("initRequest 1");
     /// Read the parameter server
     if (!readParams(robot_nh))
       return false;
-
+    ROS_WARN("initRequest 2");
     /// Create ros control interfaces to hardware
     /// Recalls: init() is called by initInterfaces()
     if (!initInterfaces(robot_hw,robot_nh,controller_nh,claimed_resources))
       return false;
-
+    ROS_WARN("initRequest 3");
     /// Create all the internal data structures for logging.
     initLogs();
-    
+    ROS_WARN("initRequest 4");
     /// Create SoT
     SotLoaderBasic::Initialization();
-
+    ROS_WARN("initRequest 5");
     /// Fill desired position during the phase where the robot is waiting.
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
@@ -166,11 +168,13 @@ namespace sot_controller
 	
 	if (search_ecpd!=effort_mode_pd_motors_.end())
 	  {
-	    /// If we are in effort mode then the device should not do any integration.
+	    /// If we are in effort mode then the device
+            /// should not do any integration.
 	    sotController_->setNoIntegration();
 
 	  }
       }
+    ROS_WARN("initRequest 6");
     return true;
   }
   
@@ -186,15 +190,18 @@ namespace sot_controller
     // Check if construction finished cleanly
     if (state_!=CONSTRUCTED)
       {
-	ROS_ERROR("Cannot initialize this controller because it failed to be constructed");
+	ROS_ERROR("Cannot initialize this controller because it "
+                  "failed to be constructed");
       }
 
     // Get a pointer to the joint position control interface
     pos_iface_ = robot_hw->get<PositionJointInterface>();
     if (!pos_iface_)
       {
-	ROS_WARN("This controller did not find  a hardware interface of type PositionJointInterface."
-		 " Make sure this is registered in the %s::RobotHW class if it is required."
+	ROS_WARN("This controller did not find  a hardware interface of type "
+                 "PositionJointInterface."
+		 " Make sure this is registered in the %s::RobotHW class "
+                 "if it is required."
 		 , lns.c_str());
       }
 
@@ -202,36 +209,48 @@ namespace sot_controller
     vel_iface_ = robot_hw->get<VelocityJointInterface>();
     if (!vel_iface_)
       {
-	ROS_WARN("This controller did not find  a hardware interface of type VelocityJointInterface."
-		 " Make sure this is registered in the %s::RobotHW class if it is required."
-		 , lns.c_str());
+	ROS_WARN
+          ("This controller did not find  a hardware interface of type "
+           "VelocityJointInterface."
+           " Make sure this is registered in the %s::RobotHW class "
+           "if it is required."
+           , lns.c_str());
       }
 
     // Get a pointer to the joint effort control interface
     effort_iface_ = robot_hw->get<EffortJointInterface>();
     if (! effort_iface_)
       {
-	ROS_WARN("This controller did not find a hardware interface of type EffortJointInterface."
-		 " Make sure this is registered in the %s::RobotHW class if it is required.",
-		 lns.c_str());
+	ROS_WARN
+          ("This controller did not find a hardware interface of type "
+           "EffortJointInterface."
+           " Make sure this is registered in the %s::RobotHW class "
+           "if it is required.",
+           lns.c_str());
       }
 
     // Get a pointer to the force-torque sensor interface
     ft_iface_ = robot_hw->get<ForceTorqueSensorInterface>();
     if (! ft_iface_ )
       {
-	ROS_WARN("This controller did not find a hardware interface of type '%s '. " 
-		 " Make sure this is registered inthe %s::RobotHW class if it is required.",
-		  internal :: demangledTypeName<ForceTorqueSensorInterface>().c_str(),lns.c_str());
+	ROS_WARN
+          ("This controller did not find a hardware interface of type '%s '. " 
+           " Make sure this is registered inthe %s::RobotHW class "
+           "if it is required.",
+           internal :: demangledTypeName<ForceTorqueSensorInterface>().c_str(),
+           lns.c_str());
       }
     
     // Get a pointer to the IMU sensor interface
     imu_iface_ = robot_hw->get<ImuSensorInterface>();
     if (! imu_iface_)
       {
-	ROS_WARN("This controller did not find a hardware interface of type '%s'."
-		 " Make sure this is registered in the %s::RobotHW class if it is required.",
-		    internal :: demangledTypeName<ImuSensorInterface>().c_str(),lns.c_str());
+	ROS_WARN
+          ("This controller did not find a hardware interface of type '%s'."
+           " Make sure this is registered in the %s::RobotHW class "
+           "if it is required.",
+           internal :: demangledTypeName<ImuSensorInterface>().c_str(),
+           lns.c_str());
       }
 
     // Temperature sensor not available in simulation mode
@@ -242,18 +261,25 @@ namespace sot_controller
 	act_temp_iface_ = robot_hw->get<ActuatorTemperatureSensorInterface>();
 	if (!act_temp_iface_)
 	  {
-	    ROS_WARN("This controller did not find a hardware interface of type '%s'."
-		     " Make sure this is registered in the %s::RobotHW class if it is required.",
-		      internal :: demangledTypeName<ActuatorTemperatureSensorInterface>().c_str(),lns.c_str());
+	    ROS_WARN
+              ("This controller did not find a hardware interface of type '%s'."
+               " Make sure this is registered in the %s::RobotHW class if it is"
+               " required.",
+               internal ::
+               demangledTypeName<ActuatorTemperatureSensorInterface>().c_str(),
+               lns.c_str());
 	  }
 #endif
       }
 	
       
     // Return which resources are claimed by this controller
-    pos_iface_->clearClaims();
-    vel_iface_->clearClaims();
-    effort_iface_->clearClaims();
+    if (pos_iface_)
+      pos_iface_->clearClaims();
+    if (vel_iface_)
+      vel_iface_->clearClaims();
+    if (effort_iface_)
+      effort_iface_->clearClaims();
     
     if (! init())
       {
@@ -269,45 +295,62 @@ namespace sot_controller
     iface_res.hardware_interface =
       hardware_interface::internal::
       demangledTypeName<PositionJointInterface>();
-    iface_res.resources = pos_iface_->getClaims();
-    claimed_resources.push_back(iface_res);
+    if (pos_iface_!=0)
+    {
+      iface_res.resources = pos_iface_->getClaims();
+      claimed_resources.push_back(iface_res);
+    }
 
     iface_res.hardware_interface =
       hardware_interface::internal::
       demangledTypeName<VelocityJointInterface>();
-    iface_res.resources = vel_iface_->getClaims();
-    claimed_resources.push_back(iface_res);
+    if (vel_iface_!=0)
+    {
+      iface_res.resources = vel_iface_->getClaims();
+      claimed_resources.push_back(iface_res);
+    }
 
     iface_res.hardware_interface =
       hardware_interface::internal::
       demangledTypeName<EffortJointInterface>();
-    iface_res.resources = effort_iface_->getClaims();
-    claimed_resources.push_back(iface_res);
+    if (effort_iface_!=0)
+    {
+      iface_res.resources = effort_iface_->getClaims();
+      claimed_resources.push_back(iface_res);
+    }
 
     /// Display claimed ressources
     if (verbosity_level_>0)
       displayClaimedResources(claimed_resources);
 
-    pos_iface_->clearClaims();
-    vel_iface_->clearClaims();
-    effort_iface_->clearClaims();
+    if (pos_iface_!=0)
+      pos_iface_->clearClaims();
+    
+    if (vel_iface_!=0)
+      vel_iface_->clearClaims();
+    
+    if (effort_iface_!=0)
+      effort_iface_->clearClaims();
 #else
     claimed_resources = pos_iface_->getClaims();
     /// Display claimed ressources
     if (verbosity_level_>0)
       displayClaimedResources(claimed_resources);
-    pos_iface_->clearClaims();
+    if (pos_iface_!=0)    
+      pos_iface_->clearClaims();
 
     claimed_resources = vel_iface_->getClaims();
     /// Display claimed ressources
     if (verbosity_level_>0)
       displayClaimedResources(claimed_resources);
-    vel_iface_->clearClaims();
+    if (vel_iface_!=0)    
+      vel_iface_->clearClaims();
 
     claimed_resources = effort_iface_->getClaims();
     if (verbosity_level_>0)
       displayClaimedResources(claimed_resources);
-    effort_iface_->clearClaims();
+    if (effort_iface_!=0)
+      effort_iface_->clearClaims();
 #endif    
     if (verbosity_level_>0)
       ROS_INFO_STREAM("Initialization of sot-controller Ok !");
@@ -404,15 +447,17 @@ namespace sot_controller
     if (robot_nh.hasParam("/sot_controller/effort_control_pd_motor_init/gains"))
       {
        XmlRpc::XmlRpcValue xml_rpc_ecpd_init;
-       robot_nh.getParamCached("/sot_controller/effort_control_pd_motor_init/gains",
-                               xml_rpc_ecpd_init);
+       robot_nh.getParamCached
+         ("/sot_controller/effort_control_pd_motor_init/gains",
+          xml_rpc_ecpd_init);
 
        /// Display gain during transition control.
        if (verbosity_level_>0)
-    	 ROS_INFO("/sot_controller/effort_control_pd_motor_init/gains: %d %d %d\n",
-    		  xml_rpc_ecpd_init.getType(),
-		  XmlRpc::XmlRpcValue::TypeArray,
-		  XmlRpc::XmlRpcValue::TypeStruct);
+    	 ROS_INFO
+           ("/sot_controller/effort_control_pd_motor_init/gains: %d %d %d\n",
+            xml_rpc_ecpd_init.getType(),
+            XmlRpc::XmlRpcValue::TypeArray,
+            XmlRpc::XmlRpcValue::TypeStruct);
        
        effort_mode_pd_motors_.clear();
        
@@ -436,8 +481,10 @@ namespace sot_controller
 			 read_from_xmlrpc_value(prefix);
 		     }
 		   else
-		     ROS_ERROR("No PID data for effort controlled joint %s in /sot_controller/effort_control_pd_motor_init/gains/",
-			       joints_name_[i].c_str());
+		     ROS_ERROR
+                       ("No PID data for effort controlled joint %s in "
+                        "/sot_controller/effort_control_pd_motor_init/gains/",
+                        joints_name_[i].c_str());
 		 }
 	     }
 
@@ -445,7 +492,7 @@ namespace sot_controller
        return true;
       }
     
-    ROS_ERROR("No parameter /sot_controller/effort_controler_pd_motor_init");
+    ROS_WARN("No parameter /sot_controller/effort_controler_pd_motor_init");
     return false;
   }
   
@@ -453,18 +500,21 @@ namespace sot_controller
   readParamsVelocityControlPDMotorControlData(ros::NodeHandle &robot_nh)
   {
     // Read libname
-    if (robot_nh.hasParam("/sot_controller/velocity_control_pd_motor_init/gains"))
+    if (robot_nh.hasParam("/sot_controller/velocity_control_pd_motor_init/"
+                          "gains"))
       {
        XmlRpc::XmlRpcValue xml_rpc_ecpd_init;
-       robot_nh.getParamCached("/sot_controller/velocity_control_pd_motor_init/gains",
-                               xml_rpc_ecpd_init);
+       robot_nh.getParamCached
+         ("/sot_controller/velocity_control_pd_motor_init/gains",
+          xml_rpc_ecpd_init);
 
        /// Display gain during transition control.
        if (verbosity_level_>0)
-    	 ROS_INFO("/sot_controller/velocity_control_pd_motor_init/gains: %d %d %d\n",
-    		  xml_rpc_ecpd_init.getType(),
-		  XmlRpc::XmlRpcValue::TypeArray,
-		  XmlRpc::XmlRpcValue::TypeStruct);
+    	 ROS_INFO
+           ("/sot_controller/velocity_control_pd_motor_init/gains: %d %d %d\n",
+            xml_rpc_ecpd_init.getType(),
+            XmlRpc::XmlRpcValue::TypeArray,
+            XmlRpc::XmlRpcValue::TypeStruct);
        
        velocity_mode_pd_motors_.clear();
        
@@ -488,8 +538,10 @@ namespace sot_controller
 			 read_from_xmlrpc_value(prefix);
 		     }
 		   else
-		     ROS_ERROR("No PID data for velocity controlled joint %s in /sot_controller/velocity_control_pd_motor_init/gains/",
-			       joints_name_[i].c_str());
+		     ROS_ERROR
+                       ("No PID data for velocity controlled joint %s in "
+                        "/sot_controller/velocity_control_pd_motor_init/gains/",
+                        joints_name_[i].c_str());
 		 }
 	     }
 
@@ -497,7 +549,7 @@ namespace sot_controller
        return true;
       }
     
-    ROS_ERROR("No parameter /sot_controller/velocity_controler_pd_motor_init");
+    ROS_WARN("No parameter /sot_controller/velocity_controler_pd_motor_init");
     return false;
   }
 
@@ -510,7 +562,8 @@ namespace sot_controller
     	if (robot_nh.getParam("/sot_controller/map_rc_to_sot_device",
     			      mapFromRCToSotDevice_))
     	  {
-    	    /// TODO: Check if the mapping is complete wrt to the interface and the mapping.
+    	    /// TODO: Check if the mapping is complete wrt to the interface
+            /// and the mapping.
     	    if (verbosity_level_>0)
     	      {
     		ROS_INFO_STREAM("Loading map rc to sot device: ");
@@ -521,13 +574,15 @@ namespace sot_controller
     	  }
     	else
     	  {
-    	    ROS_ERROR_STREAM("Could not read param /sot_controller/map_rc_to_sot_device");
+    	    ROS_ERROR_STREAM("Could not read param /sot_controller/"
+                             "map_rc_to_sot_device");
     	    return false;
     	  }
       }  
     else
       {
-    	ROS_INFO_STREAM("Param /sot_controller/map_rc_to_sot_device does not exists !");
+    	ROS_INFO_STREAM("Param /sot_controller/map_rc_to_sot_device "
+                        "does not exists !");
     	return false;
       }
     return true;
@@ -549,15 +604,18 @@ namespace sot_controller
 
     	    if (modelURDF_.use_count())
     	      {
-    		urdf::JointConstSharedPtr aJCSP = modelURDF_->getJoint(joints_name_[i]);
+    		urdf::JointConstSharedPtr aJCSP =
+                  modelURDF_->getJoint(joints_name_[i]);
     		if (aJCSP.use_count()!=0)
     		  {
     		    if (verbosity_level_>0)
-    		      ROS_INFO_STREAM( joints_name_[i] + " found in the robot model" );
+    		      ROS_INFO_STREAM( joints_name_[i] +
+                                       " found in the robot model" );
     		  }
     		else
     		  {
-    		    ROS_ERROR(" %s not found in the robot model",joints_name_[i].c_str());
+    		    ROS_ERROR(" %s not found in the robot model",
+                              joints_name_[i].c_str());
     		    return false;
     		  }
     	      }
@@ -583,7 +641,8 @@ namespace sot_controller
 		      JointSotHandle &aJointSotHandle)
   {
     std::string scontrol_mode;
-    static const std::string seffort("EFFORT"),svelocity("VELOCITY"),sposition("POSITION");
+    static const std::string seffort("EFFORT"),
+      svelocity("VELOCITY"),sposition("POSITION");
     static const std::string ros_control_mode = "ros_control_mode";
 
     /// Read the list of control_mode
@@ -599,7 +658,7 @@ namespace sot_controller
         return false;
       }
     
-    if      (scontrol_mode==sposition)
+    if (scontrol_mode==sposition)
       joint_control_mode=POSITION;
     else if (scontrol_mode==svelocity)
       joint_control_mode=VELOCITY;
@@ -669,7 +728,8 @@ namespace sot_controller
 	return true;
       }
 
-    ROS_ERROR("You need to define a control period in param /sot_controller/dt");
+    ROS_ERROR
+      ("You need to define a control period in param /sot_controller/dt");
     return false;
   }
 
@@ -697,7 +757,8 @@ namespace sot_controller
   readParams(ros::NodeHandle &robot_nh)
   {
 
-    /// Read the level of verbosity for the controller (0: quiet, 1: info, 2: debug).
+    /// Read the level of verbosity for the controller
+    /// (0: quiet, 1: info, 2: debug).
     /// Default to quiet
     readParamsVerbosityLevel(robot_nh);
     
@@ -705,7 +766,8 @@ namespace sot_controller
     if (!readParamsSotLibName(robot_nh))
       return false;
 
-    /// Read /sot_controller/simulation_mode to know if we are in simulation mode
+    /// Read /sot_controller/simulation_mode to know
+    /// if we are in simulation mode
     // Defines if we are in simulation node.
     if (robot_nh.hasParam("/sot_controller/simulation_mode")) 
       simulation_mode_ = true;
@@ -760,20 +822,27 @@ namespace sot_controller
                   case POSITION:
 		    aJointSotHandle.joint = pos_iface_->getHandle(joint_name);
 		    if (verbosity_level_>0)
-		      ROS_INFO_STREAM("Found joint " << joint_name << " in position "
-				      << i << " " << aJointSotHandle.joint.getName());
+		      ROS_INFO_STREAM("Found joint " << joint_name
+                                      << " in position "
+				      << i << " "
+                                      << aJointSotHandle.joint.getName());
                     break;
                   case VELOCITY:
 		    aJointSotHandle.joint = vel_iface_->getHandle(joint_name);
 		    if (verbosity_level_>0)
-		      ROS_INFO_STREAM("Found joint " << joint_name << " in velocity "
-				      << i << " " << aJointSotHandle.joint.getName());
+		      ROS_INFO_STREAM("Found joint " << joint_name
+                                      << " in velocity "
+				      << i << " "
+                                      << aJointSotHandle.joint.getName());
                     break;
                   case EFFORT:
-                    aJointSotHandle.joint = effort_iface_->getHandle(joint_name);
+                    aJointSotHandle.joint = effort_iface_->
+                      getHandle(joint_name);
                     if (verbosity_level_>0)
-                      ROS_INFO_STREAM("Found joint " << joint_name << " in effort "
-                          << i << " " << aJointSotHandle.joint.getName());
+                      ROS_INFO_STREAM("Found joint " << joint_name
+                                      << " in effort "
+                                      << i << " "
+                                      << aJointSotHandle.joint.getName());
                 }
 
 		// throws on failure
@@ -801,7 +870,8 @@ namespace sot_controller
     if (!imu_iface_) return false;
 
     // get all imu sensor names
-    const std :: vector<std :: string >& imu_iface_names = imu_iface_->getNames();
+    const std :: vector<std :: string >& imu_iface_names =
+      imu_iface_->getNames();
     if (verbosity_level_>0)
       {
 	for (unsigned i=0; i <imu_iface_names.size(); i++)
@@ -844,20 +914,24 @@ namespace sot_controller
         if (!act_temp_iface_) return false;
 
 	// get temperature sensors names
-	const std::vector<std::string>& act_temp_iface_names = act_temp_iface_->getNames();
+	const std::vector<std::string>& act_temp_iface_names =
+          act_temp_iface_->getNames();
 	
 	if (verbosity_level_>0)
 	  {
-	    ROS_INFO("Actuator temperature sensors: %ld",act_temp_iface_names.size() ); 
+	    ROS_INFO("Actuator temperature sensors: %ld",
+                     act_temp_iface_names.size() ); 
 	    
 	    for (unsigned i=0; i <act_temp_iface_names.size(); i++)
 	      ROS_INFO("Got sensor %s", act_temp_iface_names[i].c_str());
 	  }
 	
-	for (unsigned i=0; i <act_temp_iface_names.size(); i++){
-	  // sensor handle on actuator temperature
-	  act_temp_sensors_.push_back(act_temp_iface_->getHandle(act_temp_iface_names[i]));
-	}
+	for (unsigned i=0; i <act_temp_iface_names.size(); i++)
+          {
+            // sensor handle on actuator temperature
+            act_temp_sensors_.push_back(act_temp_iface_->
+                                        getHandle(act_temp_iface_names[i]));
+          }
 #endif	
       }
 
@@ -896,7 +970,8 @@ namespace sot_controller
 	    DataOneIter_.motor_angle[idJoint] = aJoint.joint.getPosition();
 	    
 #ifdef TEMPERATURE_SENSOR_CONTROLLER
-	    DataOneIter_.joint_angle[idJoint] = aJoint.joint.getAbsolutePosition();
+	    DataOneIter_.joint_angle[idJoint] =
+              aJoint.joint.getAbsolutePosition();
 #endif	  
 	    DataOneIter_.velocities[idJoint] = aJoint.joint.getVelocity();
 
@@ -941,7 +1016,8 @@ namespace sot_controller
 	  {
 	    for(unsigned int idquat = 0;idquat<4;idquat++)
 	      {
-		DataOneIter_.orientation[idquat] = imu_sensor_[idIMU].getOrientation ()[idquat];
+		DataOneIter_.orientation[idquat] =
+                  imu_sensor_[idIMU].getOrientation ()[idquat];
 	      }
 	  }
 	if (imu_sensor_[idIMU].getAngularVelocity())
@@ -1001,7 +1077,8 @@ namespace sot_controller
 #ifdef TEMPERATURE_SENSOR_CONTROLLER
 	for(unsigned int idFS=0;idFS<act_temp_sensors_.size();idFS++)
 	  {
-	    DataOneIter_.temperatures[idFS]=  act_temp_sensors_[idFS].getValue();
+	    DataOneIter_.temperatures[idFS]=
+              act_temp_sensors_[idFS].getValue();
 	  }
 #endif
       }
@@ -1077,7 +1154,8 @@ namespace sot_controller
   void RCSotController::
   localStandbyEffortControlMode(const ros::Duration& period)
   {
-    // ROS_INFO("Compute command for effort mode: %d %d",joints_.size(),effort_mode_pd_motors_.size());
+    // ROS_INFO("Compute command for effort mode: %d %d",joints_.size(),
+    // effort_mode_pd_motors_.size());
     for(unsigned int idJoint=0;idJoint<joints_.size();idJoint++)
       {
 	std::string joint_name = joints_name_[idJoint];
@@ -1091,9 +1169,11 @@ namespace sot_controller
 	    lhi::JointHandle &aJoint = aJointSotHandle.joint;
 
 	    double vel_err = 0 - aJoint.getVelocity();
-	    double err = aJointSotHandle.desired_init_pose - aJoint.getPosition();
+	    double err = aJointSotHandle.desired_init_pose -
+              aJoint.getPosition();
 	    
-	    double local_command = ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
+	    double local_command =
+              ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
 	    // Apply command
 	    aJoint.setCommand(local_command);
 	  }
@@ -1120,9 +1200,11 @@ namespace sot_controller
 	    lhi::JointHandle &aJoint = aJointSotHandle.joint;
 
 	    double vel_err = 0 - aJoint.getVelocity();
-	    double err = aJointSotHandle.desired_init_pose - aJoint.getPosition();
+	    double err = aJointSotHandle.desired_init_pose
+              - aJoint.getPosition();
 	    
-	    double local_command = ecpdcdata.pid_controller.computeCommand(err,vel_err,period);
+	    double local_command = ecpdcdata.pid_controller.
+              computeCommand(err,vel_err,period);
 		    
 	    aJoint.setCommand(local_command);
 	    
@@ -1188,15 +1270,19 @@ namespace sot_controller
 	   }
 	 catch (std::exception const &exc)
 	   {
-	     std::cerr << "Failure happened during one_iteration evaluation: std_exception" << std::endl;
-	     std::cerr << "Use gdb on this line together with gdb to investiguate the problem: " <<std::endl;
+	     std::cerr << "Failure happened during one_iteration evaluation: "
+                       << "std_exception" << std::endl;
+	     std::cerr << "Use gdb on this line together with gdb to "
+                       << "investiguate the problem: " <<std::endl;
 	     std::cerr << __FILE__ << " " << __LINE__  << std::endl;
 	     throw exc;
 	   }
 	 catch (...)
 	   {
-	     std::cerr << "Failure happened during one_iteration evaluation: unknown exception" << std::endl;
-	     std::cerr << "Use gdb on this line together with gdb to investiguate the problem: " <<std::endl;
+	     std::cerr << "Failure happened during one_iteration evaluation: "
+                       << "unknown exception" << std::endl;
+	     std::cerr << "Use gdb on this line together with gdb to "
+                       << "investiguate the problem: " <<std::endl;
 	     std::cerr << __FILE__ << " " << __LINE__  << std::endl;
 	   }
        }
@@ -1225,7 +1311,8 @@ namespace sot_controller
   starting(const ros::Time &)
   {
     using namespace ::dynamicgraph;
-    RealTimeLogger::instance().addOutputStream(LoggerStreamPtr_t(new LoggerROSStream()));
+    RealTimeLogger::instance().addOutputStream
+      (LoggerStreamPtr_t(new LoggerROSStream()));
 
     fillSensors();
   }
