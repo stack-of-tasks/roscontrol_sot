@@ -1055,27 +1055,6 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       sotController_->setupSetSensors(sensorsIn_);
     } catch(std::exception &e) { throw e;}
   }
-    
-  void RCSotController::
-  stopping(const ros::Time &)
-  {
-    std::string afilename("/tmp/sot.log");
-    RcSotLog_.save(afilename);
-
-    /// Generate a control law.
-    try {
-      sotController_->nominalSetSensors(sensorsIn_);
-    } catch (std::exception &e) {
-      throw e;
-    }
-
-    // But in effort mode it means that we are sending 0
-    // Therefore implements a default PD controller on the system.
-    // Applying both to handle mixed system.
-    localStandbyEffortControlMode(period);
-    localStandbyVelocityControlMode(period);
-    localStandbyPositionControlMode();
-  }
 }
 
 void RCSotController::starting(const ros::Time &) {
