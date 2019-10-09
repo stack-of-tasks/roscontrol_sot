@@ -1,14 +1,14 @@
-#include <fstream>
-#include <iostream>
-#include <iomanip>
 #include <cassert>
 #include <cstring>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
 
-void usage(char* bin) {
+void usage(char *bin) {
   std::cerr << "Usage: " << bin << " [--separator sep] binary_file_name\n";
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   if (argc < 2) {
     usage(argv[0]);
     return 1;
@@ -34,8 +34,8 @@ int main(int argc, char* argv[]) {
 
   // Read headers
   std::size_t nVector = 0, vectorSize = 0;
-  in.read((char*)&nVector, sizeof(std::size_t));
-  in.read((char*)&vectorSize, sizeof(std::size_t));
+  in.read((char *)&nVector, sizeof(std::size_t));
+  in.read((char *)&vectorSize, sizeof(std::size_t));
   if (!in.good()) {
     std::cerr << "Couldn't parse file: " << argv[iarg] << '\n';
     return 3;
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
   for (std::size_t i = 0; i < nVector; ++i) {
     for (std::size_t j = 0; j < vectorSize; ++j) {
-      in.read((char*)&v, sizeof(double));
+      in.read((char *)&v, sizeof(double));
       if (!in.good()) {
         std::cerr << "Stopped to parse at (" << i << ',' << j
                   << ") of file: " << argv[iarg] << '\n';

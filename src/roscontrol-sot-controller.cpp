@@ -1,6 +1,6 @@
+#include <dlfcn.h>
 #include <fstream>
 #include <iomanip>
-#include <dlfcn.h>
 #include <sstream>
 
 #include "roscontrol-sot-controller.hh"
@@ -19,26 +19,26 @@
 
 #define DBGFILE "/tmp/rcoh2sot.dat"
 
-#define RESETDEBUG5()                            \
-  {                                              \
-    std::ofstream DebugFile;                     \
-    DebugFile.open(DBGFILE, std::ofstream::out); \
-    DebugFile.close();                           \
+#define RESETDEBUG5()                                                          \
+  {                                                                            \
+    std::ofstream DebugFile;                                                   \
+    DebugFile.open(DBGFILE, std::ofstream::out);                               \
+    DebugFile.close();                                                         \
   }
-#define ODEBUG5FULL(x)                                               \
-  {                                                                  \
-    std::ofstream DebugFile;                                         \
-    DebugFile.open(DBGFILE, std::ofstream::app);                     \
-    DebugFile << __FILE__ << ":" << __FUNCTION__ << "(#" << __LINE__ \
-              << "):" << x << std::endl;                             \
-    DebugFile.close();                                               \
+#define ODEBUG5FULL(x)                                                         \
+  {                                                                            \
+    std::ofstream DebugFile;                                                   \
+    DebugFile.open(DBGFILE, std::ofstream::app);                               \
+    DebugFile << __FILE__ << ":" << __FUNCTION__ << "(#" << __LINE__           \
+              << "):" << x << std::endl;                                       \
+    DebugFile.close();                                                         \
   }
-#define ODEBUG5(x)                               \
-  {                                              \
-    std::ofstream DebugFile;                     \
-    DebugFile.open(DBGFILE, std::ofstream::app); \
-    DebugFile << x << std::endl;                 \
-    DebugFile.close();                           \
+#define ODEBUG5(x)                                                             \
+  {                                                                            \
+    std::ofstream DebugFile;                                                   \
+    DebugFile.open(DBGFILE, std::ofstream::app);                               \
+    DebugFile << x << std::endl;                                               \
+    DebugFile.close();                                                         \
   }
 
 #define RESETDEBUG4()
@@ -46,7 +46,7 @@
 #define ODEBUG4(x)
 
 class LoggerROSStream : public ::dynamicgraph::LoggerStream {
- public:
+public:
   void write(const char *c) { ROS_ERROR("%s", c); }
 };
 
@@ -70,13 +70,10 @@ void ControlPDMotorControlData::read_from_xmlrpc_value(
 }
 
 RCSotController::RCSotController()
-    :  // Store 32 DoFs for 5 minutes (1 Khz: 5*60*1000)
-       // -> 124 Mo of data.
-      type_name_("RCSotController"),
-      simulation_mode_(false),
-      accumulated_time_(0.0),
-      jitter_(0.0),
-      verbosity_level_(0) {
+    : // Store 32 DoFs for 5 minutes (1 Khz: 5*60*1000)
+      // -> 124 Mo of data.
+      type_name_("RCSotController"), simulation_mode_(false),
+      accumulated_time_(0.0), jitter_(0.0), verbosity_level_(0) {
   RESETDEBUG4();
   profileLog_.length = 300000;
 }
@@ -129,7 +126,8 @@ bool RCSotController::initRequest(lhi::RobotHW *robot_hw,
                                   ClaimedResources &claimed_resources) {
   ROS_WARN("initRequest 1");
   /// Read the parameter server
-  if (!readParams(robot_nh)) return false;
+  if (!readParams(robot_nh))
+    return false;
   ROS_WARN("initRequest 2");
   /// Create ros control interfaces to hardware
   /// Recalls: init() is called by initInterfaces()
@@ -166,64 +164,58 @@ bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
 
   // Check if construction finished cleanly
   if (state_ != CONSTRUCTED) {
-    ROS_ERROR(
-        "Cannot initialize this controller because it "
-        "failed to be constructed");
+    ROS_ERROR("Cannot initialize this controller because it "
+              "failed to be constructed");
   }
 
   // Get a pointer to the joint position control interface
   pos_iface_ = robot_hw->get<PositionJointInterface>();
   if (!pos_iface_) {
-    ROS_WARN(
-        "This controller did not find  a hardware interface of type "
-        "PositionJointInterface."
-        " Make sure this is registered in the %s::RobotHW class "
-        "if it is required.",
-        lns.c_str());
+    ROS_WARN("This controller did not find  a hardware interface of type "
+             "PositionJointInterface."
+             " Make sure this is registered in the %s::RobotHW class "
+             "if it is required.",
+             lns.c_str());
   }
 
   // Get a pointer to the joint velocity control interface
   vel_iface_ = robot_hw->get<VelocityJointInterface>();
   if (!vel_iface_) {
-    ROS_WARN(
-        "This controller did not find  a hardware interface of type "
-        "VelocityJointInterface."
-        " Make sure this is registered in the %s::RobotHW class "
-        "if it is required.",
-        lns.c_str());
+    ROS_WARN("This controller did not find  a hardware interface of type "
+             "VelocityJointInterface."
+             " Make sure this is registered in the %s::RobotHW class "
+             "if it is required.",
+             lns.c_str());
   }
 
   // Get a pointer to the joint effort control interface
   effort_iface_ = robot_hw->get<EffortJointInterface>();
   if (!effort_iface_) {
-    ROS_WARN(
-        "This controller did not find a hardware interface of type "
-        "EffortJointInterface."
-        " Make sure this is registered in the %s::RobotHW class "
-        "if it is required.",
-        lns.c_str());
+    ROS_WARN("This controller did not find a hardware interface of type "
+             "EffortJointInterface."
+             " Make sure this is registered in the %s::RobotHW class "
+             "if it is required.",
+             lns.c_str());
   }
 
   // Get a pointer to the force-torque sensor interface
   ft_iface_ = robot_hw->get<ForceTorqueSensorInterface>();
   if (!ft_iface_) {
-    ROS_WARN(
-        "This controller did not find a hardware interface of type '%s '. "
-        " Make sure this is registered inthe %s::RobotHW class "
-        "if it is required.",
-        internal ::demangledTypeName<ForceTorqueSensorInterface>().c_str(),
-        lns.c_str());
+    ROS_WARN("This controller did not find a hardware interface of type '%s '. "
+             " Make sure this is registered inthe %s::RobotHW class "
+             "if it is required.",
+             internal ::demangledTypeName<ForceTorqueSensorInterface>().c_str(),
+             lns.c_str());
   }
 
   // Get a pointer to the IMU sensor interface
   imu_iface_ = robot_hw->get<ImuSensorInterface>();
   if (!imu_iface_) {
-    ROS_WARN(
-        "This controller did not find a hardware interface of type '%s'."
-        " Make sure this is registered in the %s::RobotHW class "
-        "if it is required.",
-        internal ::demangledTypeName<ImuSensorInterface>().c_str(),
-        lns.c_str());
+    ROS_WARN("This controller did not find a hardware interface of type '%s'."
+             " Make sure this is registered in the %s::RobotHW class "
+             "if it is required.",
+             internal ::demangledTypeName<ImuSensorInterface>().c_str(),
+             lns.c_str());
   }
 
   // Temperature sensor not available in simulation mode
@@ -244,9 +236,12 @@ bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
   }
 
   // Return which resources are claimed by this controller
-  if (pos_iface_) pos_iface_->clearClaims();
-  if (vel_iface_) vel_iface_->clearClaims();
-  if (effort_iface_) effort_iface_->clearClaims();
+  if (pos_iface_)
+    pos_iface_->clearClaims();
+  if (vel_iface_)
+    vel_iface_->clearClaims();
+  if (effort_iface_)
+    effort_iface_->clearClaims();
 
   if (!init()) {
     ROS_ERROR("Failed to initialize sot-controller");
@@ -280,27 +275,37 @@ bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
   }
 
   /// Display claimed ressources
-  if (verbosity_level_ > 0) displayClaimedResources(claimed_resources);
+  if (verbosity_level_ > 0)
+    displayClaimedResources(claimed_resources);
 
-  if (pos_iface_ != 0) pos_iface_->clearClaims();
+  if (pos_iface_ != 0)
+    pos_iface_->clearClaims();
 
-  if (vel_iface_ != 0) vel_iface_->clearClaims();
+  if (vel_iface_ != 0)
+    vel_iface_->clearClaims();
 
-  if (effort_iface_ != 0) effort_iface_->clearClaims();
+  if (effort_iface_ != 0)
+    effort_iface_->clearClaims();
 #else
   claimed_resources = pos_iface_->getClaims();
   /// Display claimed ressources
-  if (verbosity_level_ > 0) displayClaimedResources(claimed_resources);
-  if (pos_iface_ != 0) pos_iface_->clearClaims();
+  if (verbosity_level_ > 0)
+    displayClaimedResources(claimed_resources);
+  if (pos_iface_ != 0)
+    pos_iface_->clearClaims();
 
   claimed_resources = vel_iface_->getClaims();
   /// Display claimed ressources
-  if (verbosity_level_ > 0) displayClaimedResources(claimed_resources);
-  if (vel_iface_ != 0) vel_iface_->clearClaims();
+  if (verbosity_level_ > 0)
+    displayClaimedResources(claimed_resources);
+  if (vel_iface_ != 0)
+    vel_iface_->clearClaims();
 
   claimed_resources = effort_iface_->getClaims();
-  if (verbosity_level_ > 0) displayClaimedResources(claimed_resources);
-  if (effort_iface_ != 0) effort_iface_->clearClaims();
+  if (verbosity_level_ > 0)
+    displayClaimedResources(claimed_resources);
+  if (effort_iface_ != 0)
+    effort_iface_->clearClaims();
 #endif
   if (verbosity_level_ > 0)
     ROS_INFO_STREAM("Initialization of sot-controller Ok !");
@@ -311,7 +316,8 @@ bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
 }
 
 bool RCSotController::init() {
-  if (!initJoints()) return false;
+  if (!initJoints())
+    return false;
   if (!initIMU()) {
     ROS_WARN("could not initialize IMU sensor(s).");
   }
@@ -404,10 +410,9 @@ bool RCSotController::readParamsEffortControlPDMotorControlData(
             effort_mode_pd_motors_[joints_name_[i]].read_from_xmlrpc_value(
                 prefix);
           } else
-            ROS_ERROR(
-                "No PID data for effort controlled joint %s in "
-                "/sot_controller/effort_control_pd_motor_init/gains/",
-                joints_name_[i].c_str());
+            ROS_ERROR("No PID data for effort controlled joint %s in "
+                      "/sot_controller/effort_control_pd_motor_init/gains/",
+                      joints_name_[i].c_str());
         }
       }
     }
@@ -452,10 +457,9 @@ bool RCSotController::readParamsVelocityControlPDMotorControlData(
             velocity_mode_pd_motors_[joints_name_[i]].read_from_xmlrpc_value(
                 prefix);
           } else
-            ROS_ERROR(
-                "No PID data for velocity controlled joint %s in "
-                "/sot_controller/velocity_control_pd_motor_init/gains/",
-                joints_name_[i].c_str());
+            ROS_ERROR("No PID data for velocity controlled joint %s in "
+                      "/sot_controller/velocity_control_pd_motor_init/gains/",
+                      joints_name_[i].c_str());
         }
       }
     }
@@ -480,15 +484,13 @@ bool RCSotController::readParamsFromRCToSotDevice(ros::NodeHandle &robot_nh) {
           ROS_INFO_STREAM(it->first << ", " << it->second);
       }
     } else {
-      ROS_ERROR_STREAM(
-          "Could not read param /sot_controller/"
-          "map_rc_to_sot_device");
+      ROS_ERROR_STREAM("Could not read param /sot_controller/"
+                       "map_rc_to_sot_device");
       return false;
     }
   } else {
-    ROS_INFO_STREAM(
-        "Param /sot_controller/map_rc_to_sot_device "
-        "does not exists !");
+    ROS_INFO_STREAM("Param /sot_controller/map_rc_to_sot_device "
+                    "does not exists !");
     return false;
   }
   return true;
@@ -574,7 +576,8 @@ bool RCSotController::readParamsControlMode(ros::NodeHandle &robot_nh) {
     for (unsigned int idJoint = 0; idJoint < joints_name_.size(); idJoint++) {
       std::string joint_name = joints_name_[idJoint];
       JointSotHandle &aJoint = joints_[joint_name];
-      if (!getJointControlMode(joint_name, aJoint)) return false;
+      if (!getJointControlMode(joint_name, aJoint))
+        return false;
       ROS_INFO("joint_name[%d]=%s, control_mode=%d", idJoint,
                joint_name.c_str(), aJoint.ros_control_mode);
     }
@@ -589,13 +592,15 @@ bool RCSotController::readParamsdt(ros::NodeHandle &robot_nh) {
   /// Reading the jitter is optional but it is a very good idea.
   if (robot_nh.hasParam("/sot_controller/jitter")) {
     robot_nh.getParam("/sot_controller/jitter", jitter_);
-    if (verbosity_level_ > 0) ROS_INFO_STREAM("jitter: " << jitter_);
+    if (verbosity_level_ > 0)
+      ROS_INFO_STREAM("jitter: " << jitter_);
   }
 
   /// Read /sot_controller/dt to know what is the control period
   if (robot_nh.hasParam("/sot_controller/dt")) {
     robot_nh.getParam("/sot_controller/dt", dt_);
-    if (verbosity_level_ > 0) ROS_INFO_STREAM("dt: " << dt_);
+    if (verbosity_level_ > 0)
+      ROS_INFO_STREAM("dt: " << dt_);
     return true;
   }
 
@@ -627,7 +632,8 @@ bool RCSotController::readParams(ros::NodeHandle &robot_nh) {
   readParamsVerbosityLevel(robot_nh);
 
   /// Reads the SoT dynamic library name.
-  if (!readParamsSotLibName(robot_nh)) return false;
+  if (!readParamsSotLibName(robot_nh))
+    return false;
 
   /// Read /sot_controller/simulation_mode to know
   /// if we are in simulation mode
@@ -640,18 +646,21 @@ bool RCSotController::readParams(ros::NodeHandle &robot_nh) {
 
   /// Calls readParamsJointNames
   // Reads the list of joints to be controlled.
-  if (!readParamsJointNames(robot_nh)) return false;
+  if (!readParamsJointNames(robot_nh))
+    return false;
 
   /// Calls readParamsControlMode.
   // Defines if the control mode is position or effort
-  if (!readParamsControlMode(robot_nh)) return false;
+  if (!readParamsControlMode(robot_nh))
+    return false;
 
   /// Calls readParamsFromRCToSotDevice
   // Mapping from ros-controll to sot device
   readParamsFromRCToSotDevice(robot_nh);
 
   /// Get control period
-  if (!readParamsdt(robot_nh)) return false;
+  if (!readParamsdt(robot_nh))
+    return false;
 
   readParamsEffortControlPDMotorControlData(robot_nh);
   readParamsVelocityControlPDMotorControlData(robot_nh);
@@ -671,26 +680,26 @@ bool RCSotController::initJoints() {
       try {
         JointSotHandle &aJointSotHandle = joints_[joint_name];
         switch (aJointSotHandle.ros_control_mode) {
-          case POSITION:
-            aJointSotHandle.joint = pos_iface_->getHandle(joint_name);
-            if (verbosity_level_ > 0)
-              ROS_INFO_STREAM("Found joint "
-                              << joint_name << " in position " << i << " "
-                              << aJointSotHandle.joint.getName());
-            break;
-          case VELOCITY:
-            aJointSotHandle.joint = vel_iface_->getHandle(joint_name);
-            if (verbosity_level_ > 0)
-              ROS_INFO_STREAM("Found joint "
-                              << joint_name << " in velocity " << i << " "
-                              << aJointSotHandle.joint.getName());
-            break;
-          case EFFORT:
-            aJointSotHandle.joint = effort_iface_->getHandle(joint_name);
-            if (verbosity_level_ > 0)
-              ROS_INFO_STREAM("Found joint "
-                              << joint_name << " in effort " << i << " "
-                              << aJointSotHandle.joint.getName());
+        case POSITION:
+          aJointSotHandle.joint = pos_iface_->getHandle(joint_name);
+          if (verbosity_level_ > 0)
+            ROS_INFO_STREAM("Found joint " << joint_name << " in position " << i
+                                           << " "
+                                           << aJointSotHandle.joint.getName());
+          break;
+        case VELOCITY:
+          aJointSotHandle.joint = vel_iface_->getHandle(joint_name);
+          if (verbosity_level_ > 0)
+            ROS_INFO_STREAM("Found joint " << joint_name << " in velocity " << i
+                                           << " "
+                                           << aJointSotHandle.joint.getName());
+          break;
+        case EFFORT:
+          aJointSotHandle.joint = effort_iface_->getHandle(joint_name);
+          if (verbosity_level_ > 0)
+            ROS_INFO_STREAM("Found joint " << joint_name << " in effort " << i
+                                           << " "
+                                           << aJointSotHandle.joint.getName());
         }
 
         // throws on failure
@@ -708,7 +717,8 @@ bool RCSotController::initJoints() {
 }
 
 bool RCSotController::initIMU() {
-  if (!imu_iface_) return false;
+  if (!imu_iface_)
+    return false;
 
   // get all imu sensor names
   const std ::vector<std ::string> &imu_iface_names = imu_iface_->getNames();
@@ -725,7 +735,8 @@ bool RCSotController::initIMU() {
 }
 
 bool RCSotController::initForceSensors() {
-  if (!ft_iface_) return false;
+  if (!ft_iface_)
+    return false;
 
   // get force torque sensors names package.
   const std::vector<std::string> &ft_iface_names = ft_iface_->getNames();
@@ -744,7 +755,8 @@ bool RCSotController::initForceSensors() {
 bool RCSotController::initTemperatureSensors() {
   if (!simulation_mode_) {
 #ifdef TEMPERATURE_SENSOR_CONTROLLER
-    if (!act_temp_iface_) return false;
+    if (!act_temp_iface_)
+      return false;
 
     // get temperature sensors names
     const std::vector<std::string> &act_temp_iface_names =
@@ -1053,7 +1065,9 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
     fillSensors();
     try {
       sotController_->setupSetSensors(sensorsIn_);
-    } catch(std::exception &e) { throw e;}
+    } catch (std::exception &e) {
+      throw e;
+    }
   }
 }
 
@@ -1076,4 +1090,4 @@ void RCSotController::stopping(const ros::Time &) {
 }
 
 PLUGINLIB_EXPORT_CLASS(sot_controller::RCSotController, lci::ControllerBase)
-}  // namespace sot_controller
+} // namespace sot_controller

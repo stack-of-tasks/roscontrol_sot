@@ -7,8 +7,8 @@
 #ifndef _RC_SOT_SYSTEM_LOG_H_
 #define _RC_SOT_SYSTEM_LOG_H_
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace rc_sot_system {
 
@@ -57,7 +57,7 @@ struct DataToLog {
 };
 
 class Log {
- private:
+private:
   /// Profile Log
   ProfileLog profileLog_;
 
@@ -78,7 +78,7 @@ class Log {
   void saveVector(std::string &filename, std::string &suffix,
                   const std::vector<double> &avector, std::size_t);
 
- public:
+public:
   Log();
 
   void init(ProfileLog &aProfileLog);
@@ -88,7 +88,7 @@ class Log {
   void start_it();
   void stop_it();
 };
-}  // namespace rc_sot_system
+} // namespace rc_sot_system
 
 #pragma GCC diagnostic push
 #pragma GCC system_header

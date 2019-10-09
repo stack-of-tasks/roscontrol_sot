@@ -5,22 +5,22 @@
 #ifndef RC_SOT_CONTROLLER_H
 #define RC_SOT_CONTROLLER_H
 
-#include <string>
 #include <map>
+#include <string>
 
 #pragma GCC diagnostic push
 #pragma GCC system_header
 #include <controller_interface/controller.h>
-#include <hardware_interface/joint_command_interface.h>
-#include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
+#include <hardware_interface/imu_sensor_interface.h>
+#include <hardware_interface/joint_command_interface.h>
 #include <pal_hardware_interfaces/actuator_temperature_interface.h>
 #include <pluginlib/class_list_macros.h>
 #pragma GCC diagnostic pop
 
+#include <control_toolbox/pid.h>
 #include <dynamic_graph_bridge/sot_loader_basic.hh>
 #include <ros/ros.h>
-#include <control_toolbox/pid.h>
 
 /** URDF DOM*/
 #include <urdf_parser/urdf_parser.h>
@@ -34,7 +34,7 @@ namespace lhi = hardware_interface;
 namespace lci = controller_interface;
 
 class XmlrpcHelperException : public ros::Exception {
- public:
+public:
   XmlrpcHelperException(const std::string &what) : ros::Exception(what) {}
 };
 
@@ -66,14 +66,14 @@ typedef std::set<std::string> ClaimedResources;
 
  */
 class RCSotController : public lci::ControllerBase, SotLoaderBasic {
- protected:
+protected:
   /// Robot nb dofs.
   size_t nbDofs_;
 
   /// Data log.
   rc_sot_system::DataToLog DataOneIter_;
 
- private:
+private:
   /// @{ \name Ros-control related fields
 
   /// \brief Vector of joint handles.
@@ -156,7 +156,7 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   /// Profile log
   rc_sot_system::ProfileLog profileLog_;
 
- public:
+public:
   RCSotController();
 
   /// \brief Read the configuration files,
@@ -180,7 +180,7 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   /// \brief Stopping the control
   void stopping(const ros::Time &);
 
- protected:
+protected:
   /// Initialize the roscontrol interfaces
   bool initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
                       ros::NodeHandle &, ClaimedResources &claimed_resources);
@@ -292,6 +292,6 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   bool getJointControlMode(std::string &joint_name,
                            JointSotHandle &aJointSotHandle);
 };
-}  // namespace sot_controller
+} // namespace sot_controller
 
 #endif /* RC_SOT_CONTROLLER_H */

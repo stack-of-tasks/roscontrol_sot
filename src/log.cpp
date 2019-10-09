@@ -4,17 +4,17 @@
    Object to log the low-level informations of a robot.
 */
 #include "log.hh"
-#include <sys/time.h>
-#include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <sstream>
+#include <sys/time.h>
 
 using namespace std;
 using namespace rc_sot_system;
 
 DataToLog::DataToLog() {}
 
-void DataToLog::init(ProfileLog& aProfileLog) {
+void DataToLog::init(ProfileLog &aProfileLog) {
   profileLog_ = aProfileLog;
   motor_angle.resize(aProfileLog.nbDofs * aProfileLog.length);
   joint_angle.resize(aProfileLog.nbDofs * aProfileLog.length);
@@ -37,7 +37,7 @@ void DataToLog::init(ProfileLog& aProfileLog) {
 
 Log::Log() : lref_(0), lrefts_(0) {}
 
-void Log::init(ProfileLog& aProfileLog) {
+void Log::init(ProfileLog &aProfileLog) {
   profileLog_ = aProfileLog;
   lref_ = 0;
   lrefts_ = 0;
@@ -48,7 +48,7 @@ void Log::init(ProfileLog& aProfileLog) {
   timeorigin_ = (double)current.tv_sec + 0.000001 * ((double)current.tv_usec);
 }
 
-void Log::record(DataToLog& aDataToLog) {
+void Log::record(DataToLog &aDataToLog) {
   if ((aDataToLog.motor_angle.size() != profileLog_.nbDofs) ||
       (aDataToLog.velocities.size() != profileLog_.nbDofs))
     return;
@@ -122,7 +122,7 @@ void Log::stop_it() {
       timeorigin_;
 }
 
-void Log::save(std::string& fileName) {
+void Log::save(std::string &fileName) {
   std::string suffix("-mastate.log");
   saveVector(fileName, suffix, StoredData_.motor_angle, profileLog_.nbDofs);
   suffix = "-jastate.log";
@@ -154,22 +154,22 @@ void Log::save(std::string& fileName) {
   saveVector(fileName, suffix, StoredData_.duration, 1);
 }
 
-inline void writeHeaderToBinaryBuffer(ofstream& of, const std::size_t& nVector,
-                                      const std::size_t& vectorSize) {
-  of.write((const char*)(&nVector), sizeof(std::size_t));
-  of.write((const char*)(&vectorSize), sizeof(std::size_t));
+inline void writeHeaderToBinaryBuffer(ofstream &of, const std::size_t &nVector,
+                                      const std::size_t &vectorSize) {
+  of.write((const char *)(&nVector), sizeof(std::size_t));
+  of.write((const char *)(&vectorSize), sizeof(std::size_t));
 }
 
-inline void writeToBinaryFile(ofstream& of, const double& t, const double& dt,
-                              const std::vector<double>& data,
-                              const std::size_t& idx, const std::size_t& size) {
-  of.write((const char*)&t, sizeof(double));
-  of.write((const char*)&dt, sizeof(double));
-  of.write((const char*)(&data[idx]), size * (sizeof(double)));
+inline void writeToBinaryFile(ofstream &of, const double &t, const double &dt,
+                              const std::vector<double> &data,
+                              const std::size_t &idx, const std::size_t &size) {
+  of.write((const char *)&t, sizeof(double));
+  of.write((const char *)&dt, sizeof(double));
+  of.write((const char *)(&data[idx]), size * (sizeof(double)));
 }
 
-void Log::saveVector(std::string& fileName, std::string& suffix,
-                     const std::vector<double>& avector, std::size_t size) {
+void Log::saveVector(std::string &fileName, std::string &suffix,
+                     const std::vector<double> &avector, std::size_t size) {
   ostringstream oss;
   oss << fileName;
   oss << suffix.c_str();

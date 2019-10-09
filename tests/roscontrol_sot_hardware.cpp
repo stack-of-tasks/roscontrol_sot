@@ -12,18 +12,18 @@
 // Threads
 void *RTloop(void *argument);
 
-pthread_mutex_t mutx = PTHREAD_MUTEX_INITIALIZER;  // mutex initialisation
+pthread_mutex_t mutx = PTHREAD_MUTEX_INITIALIZER; // mutex initialisation
 //******************************************************
 
 class TestRobot01Class : public hardware_interface::RobotHW {
- public:
+public:
   int ReadWrite();
 
   int UpdateImu();
   int UpdateCmd();
   int UpdateSensor();
 
-  TestRobot01Class()  // ros::NodeHandle nh);
+  TestRobot01Class() // ros::NodeHandle nh);
   {
     /// connect and register the joint state interface
     hardware_interface::JointStateHandle
@@ -153,7 +153,7 @@ class TestRobot01Class : public hardware_interface::RobotHW {
   double imu_linear_acceleration_[3];
   double imu_linear_acceleration_covariance_[9];
 
- private:
+private:
   hardware_interface::JointStateInterface jnt_state_interface_;
   hardware_interface::PositionJointInterface jnt_pos_interface_;
   hardware_interface::ImuSensorInterface imu_state_interface_;
@@ -209,13 +209,13 @@ void *RTloop(void *argument) {
   /// Boucle tant que le master existe (ros::ok())
   /// and nb_it < 100
   {
-    pthread_mutex_lock(&mutx);  // On verrouille les variables pour ce thread
+    pthread_mutex_lock(&mutx); // On verrouille les variables pour ce thread
 
     // Read phase
     aRTloopArgs->testrobot01->ReadWrite();
     // Receiving data only one time
-    aRTloopArgs->testrobot01->UpdateImu();     // Processing incoming data
-    aRTloopArgs->testrobot01->UpdateSensor();  // Processing incoming data
+    aRTloopArgs->testrobot01->UpdateImu();    // Processing incoming data
+    aRTloopArgs->testrobot01->UpdateSensor(); // Processing incoming data
 
     // Call Controllers
     ros::Duration duration = ros::Time::now() - last_time;
@@ -225,9 +225,9 @@ void *RTloop(void *argument) {
     /// Write Phase
     aRTloopArgs->testrobot01->UpdateCmd();
 
-    pthread_mutex_unlock(&mutx);  // On deverrouille les variables
+    pthread_mutex_unlock(&mutx); // On deverrouille les variables
     /// Pause
-    usleep(10000);  // 100HZ
+    usleep(10000); // 100HZ
     nb_it++;
     //      std::cout << "nb_it: " << nb_it << "\n";
   }
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
 
   /* Connexion au master et initialisation du NodeHandle qui permet
      d avoir acces aux topics et services */
-  ros::NodeHandle nh;  // testrobot01_nh;
+  ros::NodeHandle nh; // testrobot01_nh;
   controller_manager::ControllerManager cm(&testrobot01);
   RTloopArgs aRTloopArgs;
   aRTloopArgs.cm = &cm;
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
 
   // function sets the scheduling policy and parameters of the thread
   error_return = pthread_create(&thread1, NULL, RTloop,
-                                (void *)&aRTloopArgs);  // create a new thread
+                                (void *)&aRTloopArgs); // create a new thread
   ROS_INFO("thread1 created OK");
 
   if (error_return) {
@@ -269,9 +269,9 @@ int main(int argc, char *argv[]) {
   }
 
   /* Spinners */
-  ros::MultiThreadedSpinner spinner(4);  // unspecified (or set to 0),
+  ros::MultiThreadedSpinner spinner(4); // unspecified (or set to 0),
   // it will use a thread for each CPU core
-  spinner.spin();  // spin() will not return
+  spinner.spin(); // spin() will not return
   // until the node has been shutdown
 
   return 0;
