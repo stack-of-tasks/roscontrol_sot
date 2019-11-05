@@ -5,8 +5,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 set(CXX_DISABLE_WERROR True)
-
 set(WARNING_CXX_FLAGS "${WARNING_CXX_FLAGS} -Werror=format-security")
+
+set(PROJECT_NAMESPACE stack-of-tasks)
+set(PROJECT_NAME roscontrol_sot)
+set(PROJECT_DESCRIPTION "Integration of the Stack of Tasks in roscontrol")
+set(PROJECT_URL "https://github.com/${PROJECT_NAMESPACE}/${PROJECT_NAME}")
 
 include(cmake/base.cmake)
 include(cmake/ros.cmake)
@@ -22,7 +26,7 @@ add_required_dependency("urdfdom")
 
 SET(CATKIN_REQUIRED_COMPONENTS
   pal_hardware_interfaces
-  controller_interface  
+  controller_interface
   roscpp
   std_msgs
   dynamic_graph_bridge
@@ -42,17 +46,12 @@ find_package(catkin REQUIRED COMPONENTS
   ${CATKIN_REQUIRED_COMPONENTS}
 )
 
-## LAAS cmake submodule part
-set(PROJECT_DESCRIPTION "Integration of the Stack of Tasks in roscontrol")
-set(PROJECT_NAME roscontrol_sot)
-set(PROJECT_URL "https://github.com/stack-of-tasks/roscontrol_sot")
-
-
 include_directories(include tests ${bullet_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 link_directories(${bullet_LIBRARY_DIRS})
 
-SETUP_PROJECT()
+CMAKE_POLICY(SET CMP0048 OLD)
+PROJECT(${PROJECT_NAME} CXX)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
@@ -143,5 +142,3 @@ endforeach()
 
 
 ADD_SUBDIRECTORY(tests)
-
-SETUP_PROJECT_FINALIZE()
