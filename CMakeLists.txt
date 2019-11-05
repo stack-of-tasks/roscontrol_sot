@@ -5,6 +5,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 set(CXX_DISABLE_WERROR True)
+SET(CMAKE_CXX_STANDARD 11)
 set(WARNING_CXX_FLAGS "${WARNING_CXX_FLAGS} -Werror=format-security")
 
 set(PROJECT_NAMESPACE stack-of-tasks)
@@ -17,7 +18,8 @@ include(cmake/ros.cmake)
 include(cmake/GNUInstallDirs.cmake)
 include(cmake/python.cmake)
 
-project(roscontrol_sot)
+CMAKE_POLICY(SET CMP0048 OLD)
+project(roscontrol_sot CXX)
 
 find_package(PkgConfig REQUIRED)
 
@@ -49,9 +51,6 @@ find_package(catkin REQUIRED COMPONENTS
 include_directories(include tests ${bullet_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 link_directories(${bullet_LIBRARY_DIRS})
-
-CMAKE_POLICY(SET CMP0048 OLD)
-PROJECT(${PROJECT_NAME} CXX)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
