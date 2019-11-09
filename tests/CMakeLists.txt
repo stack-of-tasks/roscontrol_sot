@@ -20,9 +20,6 @@ file(MAKE_DIRECTORY
   ${LIBRARY_OUTPUT_PATH}/dynamic_graph/sot/test/sot_test_device)
 
 
-pkg_config_use_dependency(roscontrol_sot_hardware controller_manager
-  NO_INCLUDE_SYSTEM)
-
 target_link_libraries(roscontrol_sot_hardware
   ${catkin_LIBRARIES}
   ${bullet_libraries}
@@ -41,11 +38,12 @@ MACRO(build_test_device)
   #set_target_properties(${DEVICE_NAME} PROPERTIES PREFIX "")
 
   # Link the dynamic library containing the SoT with its dependencies.
-  PKG_CONFIG_USE_DEPENDENCY(${DEVICE_NAME} "dynamic-graph")
-  PKG_CONFIG_USE_DEPENDENCY(${DEVICE_NAME} "dynamic-graph-python")
-  PKG_CONFIG_USE_DEPENDENCY(${DEVICE_NAME} "sot-core")
-  PKG_CONFIG_USE_DEPENDENCY(${DEVICE_NAME} "pinocchio")
-  PKG_CONFIG_USE_DEPENDENCY(${DEVICE_NAME} "dynamic_graph_bridge")
+  target_link_libraries(${DEVICE_NAME} dynamic-graph::dynamic-graph)
+  target_link_libraries(${DEVICE_NAME}
+    dynamic-graph-python::dynamic-graph-python)
+  target_link_libraries(${DEVICE_NAME} sot-core::sot-core)
+  PKG_CONFIG_USE_DEPENDENCY(${DEVICE_NAME} pinocchio)
+#  target_link_libraries(${DEVICE_NAME}  dynamic_graph_bridge ros_bridge ros_inter)
 
   IF(UNIX AND NOT APPLE)
     TARGET_LINK_LIBRARIES(${DEVICE_NAME} ${Boost_LIBRARIES})
@@ -80,17 +78,20 @@ MACRO(build_test_controller)
   #set_target_properties(${CONTROLLER_NAME} PROPERTIES PREFIX "")
 
   # Link the dynamic library containing the SoT with its dependencies.
-  PKG_CONFIG_USE_DEPENDENCY(${CONTROLLER_NAME} "dynamic-graph")
-  PKG_CONFIG_USE_DEPENDENCY(${CONTROLLER_NAME} "dynamic-graph-python")
-  PKG_CONFIG_USE_DEPENDENCY(${CONTROLLER_NAME} "sot-core")
+  target_link_libraries(${CONTROLLER_NAME}
+    dynamic-graph::dynamic-graph)
+  target_link_libraries(${CONTROLLER_NAME}
+    dynamic-graph-python::dynamic-graph-python)
+  target_link_libraries(${CONTROLLER_NAME}
+    sot-core::sot-core)
   PKG_CONFIG_USE_DEPENDENCY(${CONTROLLER_NAME} "pinocchio")
 
-  PKG_CONFIG_USE_DEPENDENCY(${CONTROLLER_NAME} "dynamic_graph_bridge")
+  #target_link_libraries(${CONTROLLER_NAME} dynamic_graph_bridge)
 
   ADD_DEPENDENCIES(${CONTROLLER_NAME} sot-test-device)
-  TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} "ros_bridge")
-  TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} "ros_interpreter")
-  TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} "sot-test-device")
+  #TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} ros_bridge)
+  #TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} ros_interpreter)
+  TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} sot-test-device)
  
   IF(UNIX AND NOT APPLE)
     TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} ${Boost_LIBRARIES})
