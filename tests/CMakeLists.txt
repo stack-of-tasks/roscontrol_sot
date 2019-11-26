@@ -43,7 +43,7 @@ MACRO(build_test_device)
     dynamic-graph-python::dynamic-graph-python)
   target_link_libraries(${DEVICE_NAME} sot-core::sot-core)
   PKG_CONFIG_USE_DEPENDENCY(${DEVICE_NAME} pinocchio)
-#  target_link_libraries(${DEVICE_NAME}  dynamic_graph_bridge ros_bridge ros_inter)
+  #  target_link_libraries(${DEVICE_NAME}  dynamic_graph_bridge ros_bridge ros_inter)
 
   IF(UNIX AND NOT APPLE)
     TARGET_LINK_LIBRARIES(${DEVICE_NAME} ${Boost_LIBRARIES})
@@ -84,7 +84,7 @@ MACRO(build_test_controller)
     dynamic-graph-python::dynamic-graph-python)
   target_link_libraries(${CONTROLLER_NAME}
     sot-core::sot-core)
-  PKG_CONFIG_USE_DEPENDENCY(${CONTROLLER_NAME} "pinocchio")
+  PKG_CONFIG_USE_DEPENDENCY(${CONTROLLER_NAME} PINOCCHIO)
 
   #target_link_libraries(${CONTROLLER_NAME} dynamic_graph_bridge)
 
