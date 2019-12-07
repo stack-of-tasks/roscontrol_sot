@@ -935,10 +935,24 @@ void RCSotController::one_iteration() {
   /// Generate a control law.
   try {
     sotController_->nominalSetSensors(sensorsIn_);
-    sotController_->getControl(controlValues_);
   } catch (std::exception &e) {
+    std::cerr << "Failure happened during one_iteration(): "
+              << "when calling nominalSetSensors " << std::endl ;
+    std::cerr << __FILE__ << " " << __LINE__ << std::endl
+              << e.what() << std::endl;
+
     throw e;
   }
+  try {
+    sotController_->getControl(controlValues_);
+  } catch (std::exception &e) {
+    std::cerr << "Failure happened during one_iteration(): "
+              << "when calling getControl " << std::endl;
+    std::cerr << __FILE__ << " " << __LINE__ << std::endl
+              << e.what() << std::endl;;
+    throw e;
+  }
+
 
   /// Read the control values
   readControl(controlValues_);
