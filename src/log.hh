@@ -75,8 +75,14 @@ private:
   double time_stop_it_;
 
   // Save one vector of information.
+  // \param size number of contiguous values of avector that forms one line.
+  // \param start index in the time vector at which saving should start.
+  // \note avector is a circular buffer. Data will be written from
+  //       start to N, and then from 0 to start.
   void saveVector(std::string &filename, std::string &suffix,
-                  const std::vector<double> &avector, std::size_t);
+                  const std::vector<double> &avector,
+                  std::size_t size,
+                  std::size_t start);
 
 public:
   Log();

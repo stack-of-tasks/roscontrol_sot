@@ -102,6 +102,7 @@ void Log::record(DataToLog &aDataToLog) {
     lref_ = 0;
     lrefts_ = 0;
   }
+  assert(lref_ == lrefts_*profileLog_.nbDofs);
 }
 
 void Log::start_it() {
@@ -123,35 +124,39 @@ void Log::stop_it() {
 }
 
 void Log::save(std::string &fileName) {
+  assert(lref_ == lrefts_*profileLog_.nbDofs);
+
   std::string suffix("-mastate.log");
-  saveVector(fileName, suffix, StoredData_.motor_angle, profileLog_.nbDofs);
+  saveVector(fileName, suffix, StoredData_.motor_angle, profileLog_.nbDofs, lref_);
   suffix = "-jastate.log";
-  saveVector(fileName, suffix, StoredData_.joint_angle, profileLog_.nbDofs);
+  saveVector(fileName, suffix, StoredData_.joint_angle, profileLog_.nbDofs, lref_);
   suffix = "-vstate.log";
-  saveVector(fileName, suffix, StoredData_.velocities, profileLog_.nbDofs);
+  saveVector(fileName, suffix, StoredData_.velocities, profileLog_.nbDofs, lref_);
   suffix = "-torques.log";
-  saveVector(fileName, suffix, StoredData_.torques, profileLog_.nbDofs);
+  saveVector(fileName, suffix, StoredData_.torques, profileLog_.nbDofs, lref_);
   suffix = "-motor-currents.log";
-  saveVector(fileName, suffix, StoredData_.motor_currents, profileLog_.nbDofs);
+  saveVector(fileName, suffix, StoredData_.motor_currents, profileLog_.nbDofs, lref_);
   suffix = "-accelero.log";
-  saveVector(fileName, suffix, StoredData_.accelerometer, 3);
+  saveVector(fileName, suffix, StoredData_.accelerometer, 3, 3*lrefts_);
   suffix = "-gyro.log";
-  saveVector(fileName, suffix, StoredData_.gyrometer, 3);
+  saveVector(fileName, suffix, StoredData_.gyrometer, 3, 3*lrefts_);
 
   ostringstream oss;
   oss << "-forceSensors.log";
   suffix = oss.str();
   saveVector(fileName, suffix, StoredData_.force_sensors,
-             6 * profileLog_.nbForceSensors);
+             6 * profileLog_.nbForceSensors,
+             6 * profileLog_.nbForceSensors * lrefts_);
 
   suffix = "-temperatures.log";
-  saveVector(fileName, suffix, StoredData_.temperatures, profileLog_.nbDofs);
+  saveVector(fileName, suffix, StoredData_.temperatures, profileLog_.nbDofs,
+      lref_);
 
   suffix = "-controls.log";
-  saveVector(fileName, suffix, StoredData_.controls, profileLog_.nbDofs);
+  saveVector(fileName, suffix, StoredData_.controls, profileLog_.nbDofs, lref_);
 
   suffix = "-duration.log";
-  saveVector(fileName, suffix, StoredData_.duration, 1);
+  saveVector(fileName, suffix, StoredData_.duration, 1, lrefts_);
 }
 
 inline void writeHeaderToBinaryBuffer(ofstream &of, const std::size_t &nVector,
@@ -169,7 +174,8 @@ inline void writeToBinaryFile(ofstream &of, const double &t, const double &dt,
 }
 
 void Log::saveVector(std::string &fileName, std::string &suffix,
-                     const std::vector<double> &avector, std::size_t size) {
+                     const std::vector<double> &avector, std::size_t size,
+                     std::size_t start) {
   ostringstream oss;
   oss << fileName;
   oss << suffix.c_str();
@@ -180,16 +186,22 @@ void Log::saveVector(std::string &fileName, std::string &suffix,
   std::size_t idx = 0;
   double dt;
   if (aof.is_open()) {
+    std::size_t N = size * profileLog_.length;
+
     writeHeaderToBinaryBuffer(aof, profileLog_.length, size + 2);
     for (unsigned long int i = 0; i < profileLog_.length; i++) {
+      std::size_t k = (start + i) % profileLog_.length;
+
       // Compute and save dt
-      if (i == 0)
-        dt = StoredData_.timestamp[i] -
+      if (i == 0) {
+        dt = 0;
+      } else if (k == 0) {
+        dt = StoredData_.timestamp[0] -
              StoredData_.timestamp[profileLog_.length - 1];
-      else
-        dt = StoredData_.timestamp[i] - StoredData_.timestamp[i - 1];
+      } else
+        dt = StoredData_.timestamp[k] - StoredData_.timestamp[k - 1];
       writeToBinaryFile(aof, StoredData_.timestamp[i], dt, avector, idx, size);
-      idx += size;
+      idx = (idx + size) % N;
     }
     aof.close();
     ROS_INFO_STREAM("Wrote log file " << actualFileName);
