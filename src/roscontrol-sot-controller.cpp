@@ -1056,18 +1056,15 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       } else
         accumulated_time_ += periodInSec;
     } catch (std::exception const &exc) {
-      std::cerr << "Failure happened during one_iteration evaluation: "
-                << "std_exception" << std::endl;
-      std::cerr << "Use gdb on this line together with gdb to "
-                << "investiguate the problem: " << std::endl;
-      std::cerr << __FILE__ << " " << __LINE__ << std::endl;
-      throw exc;
+      ROS_ERROR_STREAM("Failure happened during one_iteration evaluation: "
+                << exc.what() << "\nUse gdb to investiguate the problem\n"
+                << __FILE__ << ":" << __LINE__);
+      throw;
     } catch (...) {
-      std::cerr << "Failure happened during one_iteration evaluation: "
-                << "unknown exception" << std::endl;
-      std::cerr << "Use gdb on this line together with gdb to "
-                << "investiguate the problem: " << std::endl;
-      std::cerr << __FILE__ << " " << __LINE__ << std::endl;
+      ROS_ERROR_STREAM("Failure happened during one_iteration evaluation: "
+                "unknown exception\nUse gdb to investiguate the problem\n"
+                << __FILE__ << ":" << __LINE__);
+      throw;
     }
   } else {
     /// Update the sensors.
@@ -1075,7 +1072,8 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
     try {
       sotController_->setupSetSensors(sensorsIn_);
     } catch (std::exception &e) {
-      throw e;
+      ROS_ERROR_STREAM("RCSotController::update: " << e.what());
+      throw;
     }
   }
 }
