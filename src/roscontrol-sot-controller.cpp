@@ -75,7 +75,6 @@ RCSotController::RCSotController()
       type_name_("RCSotController"), simulation_mode_(false),
       accumulated_time_(0.0), jitter_(0.0), verbosity_level_(0) {
   RESETDEBUG4();
-  profileLog_.length = 300000;
 }
 
 void RCSotController::displayClaimedResources(
@@ -105,17 +104,27 @@ void RCSotController::displayClaimedResources(
 #endif
 }
 
-void RCSotController::initLogs() {
+void RCSotController::initLogs(ros::NodeHandle &robot_nh) {
   ROS_INFO_STREAM("Initialize log data structure");
+
+  int length = 300000;
+  if (robot_nh.hasParam("/sot_controller/number_logged_iterations")) {
+    robot_nh.getParam("/sot_controller/number_logged_iterations", length);
+    int minutes = static_cast<int>(floor(length * dt_ / 60));
+    int seconds = static_cast<int>(floor(length * dt_)) - minutes * 60;
+
+    ROS_INFO_STREAM("Number of iterations that will be logged " << length
+        << ", i.e. " << minutes << "m" << seconds << "s");
+  }
+
   /// Initialize the size of the data to store.
   /// Set temporary profileLog to one
   /// because DataOneIter is just for one iteration.
-  size_t tmp_length = profileLog_.length;
   profileLog_.length = 1;
   DataOneIter_.init(profileLog_);
 
   /// Set profile Log to real good value for the stored data.
-  profileLog_.length = tmp_length;
+  profileLog_.length = length;
   /// Initialize the data logger for 300s.
   RcSotLog_.init(profileLog_);
 }
@@ -135,7 +144,7 @@ bool RCSotController::initRequest(lhi::RobotHW *robot_hw,
     return false;
   ROS_WARN("initRequest 3");
   /// Create all the internal data structures for logging.
-  initLogs();
+  initLogs(robot_nh);
   ROS_WARN("initRequest 4");
   /// Create SoT
   SotLoaderBasic::Initialization();

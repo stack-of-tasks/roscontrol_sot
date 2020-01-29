@@ -196,7 +196,7 @@ protected:
 
   /// Initialize internal structure for the logs based on nbDofs
   /// number of force sensors and size of the buffer.
-  void initLogs();
+  void initLogs(ros::NodeHandle &robot_nh);
 
   ///@{ \name Read the parameter server
   /// \brief Entry point
