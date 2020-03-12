@@ -75,7 +75,6 @@ RCSotController::RCSotController()
       type_name_("RCSotController"), simulation_mode_(false),
       accumulated_time_(0.0), jitter_(0.0), verbosity_level_(0) {
   RESETDEBUG4();
-  profileLog_.length = 300000;
 }
 
 void RCSotController::displayClaimedResources(
@@ -105,17 +104,27 @@ void RCSotController::displayClaimedResources(
 #endif
 }
 
-void RCSotController::initLogs() {
+void RCSotController::initLogs(ros::NodeHandle &robot_nh) {
   ROS_INFO_STREAM("Initialize log data structure");
+
+  int length = 300000;
+  if (robot_nh.hasParam("/sot_controller/number_logged_iterations")) {
+    robot_nh.getParam("/sot_controller/number_logged_iterations", length);
+    int minutes = static_cast<int>(floor(length * dt_ / 60));
+    int seconds = static_cast<int>(floor(length * dt_)) - minutes * 60;
+
+    ROS_INFO_STREAM("Number of iterations that will be logged " << length
+        << ", i.e. " << minutes << "m" << seconds << "s");
+  }
+
   /// Initialize the size of the data to store.
   /// Set temporary profileLog to one
   /// because DataOneIter is just for one iteration.
-  size_t tmp_length = profileLog_.length;
   profileLog_.length = 1;
   DataOneIter_.init(profileLog_);
 
   /// Set profile Log to real good value for the stored data.
-  profileLog_.length = tmp_length;
+  profileLog_.length = length;
   /// Initialize the data logger for 300s.
   RcSotLog_.init(profileLog_);
 }
@@ -135,7 +144,7 @@ bool RCSotController::initRequest(lhi::RobotHW *robot_hw,
     return false;
   ROS_WARN("initRequest 3");
   /// Create all the internal data structures for logging.
-  initLogs();
+  initLogs(robot_nh);
   ROS_WARN("initRequest 4");
   /// Create SoT
   SotLoaderBasic::Initialization();
@@ -1061,18 +1070,15 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       } else
         accumulated_time_ += periodInSec;
     } catch (std::exception const &exc) {
-      std::cerr << "Failure happened during one_iteration evaluation: "
-                << "std_exception" << std::endl;
-      std::cerr << "Use gdb on this line together with gdb to "
-                << "investiguate the problem: " << std::endl;
-      std::cerr << __FILE__ << " " << __LINE__ << std::endl;
-      throw exc;
+      ROS_ERROR_STREAM("Failure happened during one_iteration evaluation: "
+                << exc.what() << "\nUse gdb to investiguate the problem\n"
+                << __FILE__ << ":" << __LINE__);
+      throw;
     } catch (...) {
-      std::cerr << "Failure happened during one_iteration evaluation: "
-                << "unknown exception" << std::endl;
-      std::cerr << "Use gdb on this line together with gdb to "
-                << "investiguate the problem: " << std::endl;
-      std::cerr << __FILE__ << " " << __LINE__ << std::endl;
+      ROS_ERROR_STREAM("Failure happened during one_iteration evaluation: "
+                "unknown exception\nUse gdb to investiguate the problem\n"
+                << __FILE__ << ":" << __LINE__);
+      throw;
     }
   } else {
     /// Update the sensors.
@@ -1080,7 +1086,8 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
     try {
       sotController_->setupSetSensors(sensorsIn_);
     } catch (std::exception &e) {
-      throw e;
+      ROS_ERROR_STREAM("RCSotController::update: " << e.what());
+      throw;
     }
   }
 }

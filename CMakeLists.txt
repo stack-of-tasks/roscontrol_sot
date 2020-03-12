@@ -4,43 +4,29 @@
 #
 cmake_minimum_required(VERSION 2.8.3)
 
-set(CXX_DISABLE_WERROR True)
-
-set(WARNING_CXX_FLAGS "${WARNING_CXX_FLAGS} -Werror=format-security")
-
 SET(PROJECT_ORG stack-of-tasks)
 set(PROJECT_DESCRIPTION "roscontrol_sot")
 set(PROJECT_NAME roscontrol_sot)
-set(PROJECT_URL "https://github.com/stack-of-tasks/roscontrol_sot")
+set(PROJECT_URL "https://github.com/${PROJECT_ORG}/${PROJECT_NAME}")
 
-# Export CMake Target
+
+set(CXX_DISABLE_WERROR True)
+SET(CMAKE_CXX_STANDARD 11)
 SET(PROJECT_USE_CMAKE_EXPORT TRUE)
-
-# Disable failing compilation when a compilation error appears
 set(CXX_DISABLE_WERROR False)
 
 include(cmake/base.cmake)
-
-# Specify the project.
-cmake_policy(SET CMP0048 NEW)
-PROJECT(${PROJECT_NAME}
-  LANGUAGES
-  CXX
-  VERSION
-  ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
-  )
-
 include(cmake/ros.cmake)
-include(cmake/GNUInstallDirs.cmake)
 include(cmake/python.cmake)
 
-find_package(PkgConfig REQUIRED)
+CMAKE_POLICY(SET CMP0048 OLD)
+project(roscontrol_sot CXX)
 
 add_required_dependency(bullet)
 add_required_dependency("urdfdom")
 
 SET(CATKIN_REQUIRED_COMPONENTS
-  temperature_sensor_controller  
+  temperature_sensor_controller
   pal_hardware_interfaces
   controller_interface
   controller_manager
@@ -64,22 +50,10 @@ find_package(catkin REQUIRED COMPONENTS
   ${CATKIN_REQUIRED_COMPONENTS}
 )
 
-## LAAS cmake submodule part
-set(PROJECT_DESCRIPTION "Integration of the Stack of Tasks in roscontrol")
-set(PROJECT_NAME roscontrol_sot)
-set(PROJECT_URL "https://github.com/stack-of-tasks/roscontrol_sot")
-
-
 include_directories(include tests ${catkin_INCLUDE_DIRS} ${bullet_INCLUDE_DIRS})
 
 link_directories(${bullet_LIBRARY_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
 
 # Add dependency through jrl-cmakemodules to compile
 # this code without catkin_make
@@ -94,7 +68,7 @@ add_required_dependency("pinocchio" REQUIRED)
 catkin_package(CATKIN_DEPENDS
   temperature_sensor_controller
   pal_hardware_interfaces
-  controller_interface controller_manager  
+  controller_interface controller_manager
   roscpp
   realtime_tools
   message_runtime
@@ -118,7 +92,7 @@ LIST(APPEND LOGGING_WATCHED_VARIABLES
   TEMPERATURE_SENSOR_CONTROLLER_FOUND
   CONTROLLER_INTERFACE_FOUND
   CONTROLLER_INTERFACE_VERSION )
-  
+
 
 ###########
 ## Build ##
@@ -155,13 +129,13 @@ target_link_libraries(rcsot_controller dynamic-graph::dynamic-graph)
 
 ## Mark executables and/or libraries for installation
 install(TARGETS rcsot_controller
-  EXPORT ${TARGETS_EXPORT_NAME}    
+  EXPORT ${TARGETS_EXPORT_NAME}
   DESTINATION lib )
 
 ADD_EXECUTABLE(roscontrol-sot-parse-log
   src/roscontrol-sot-parse-log.cc)
 install(TARGETS roscontrol-sot-parse-log
-  EXPORT ${TARGETS_EXPORT_NAME}    
+  EXPORT ${TARGETS_EXPORT_NAME}
   DESTINATION bin )
 
 foreach(dir config launch)
@@ -171,20 +145,4 @@ foreach(dir config launch)
 endforeach()
 
 
-#ADD_SUBDIRECTORY(tests)
-
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-  LIST(APPEND LOGGING_WATCHED_VARIABLES
-    ${_variableName}
-    )
-endforeach()
-
-SETUP_PROJECT_FINALIZE()
-
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+ADD_SUBDIRECTORY(tests)
