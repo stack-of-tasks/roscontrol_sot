@@ -66,21 +66,21 @@ if(temperature_sensor_controller_FOUND)
   add_definitions(-DTEMPERATURE_SENSOR_CONTROLLER)
 endif(temperature_sensor_controller_FOUND)
 
-add_library(${PROJECT_NAME}
+add_library(rcsot_controller
   src/roscontrol-sot-controller.cpp
   src/log.cpp
   )
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${catkin_LIBRARIES} ${bullet_LIBRARIES}
-  sot-core::sot-core dynamic_graph_bridge::sot_loader)
+TARGET_INCLUDE_DIRECTORIES(rcsot_controller SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+TARGET_INCLUDE_DIRECTORIES(rcsot_controller PUBLIC $<INSTALL_INTERFACE:include>)
+TARGET_LINK_LIBRARIES(rcsot_controller ${catkin_LIBRARIES} ${bullet_LIBRARIES}
+  sot-core::sot-core dynamic_garph_bridge::sot_loader)
 
 IF(SUFFIX_SO_VERSION)
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION})
+  SET_TARGET_PROPERTIES(rcsot_controller PROPERTIES SOVERSION ${PROJECT_VERSION})
 ENDIF(SUFFIX_SO_VERSION)
 
 IF(NOT INSTALL_PYTHON_INTERFACE_ONLY)
-  INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${TARGETS_EXPORT_NAME} DESTINATION lib)
+  INSTALL(TARGETS rcsot_controller EXPORT ${TARGETS_EXPORT_NAME} DESTINATION lib)
 ENDIF(NOT INSTALL_PYTHON_INTERFACE_ONLY)
 
 ADD_EXECUTABLE(roscontrol-sot-parse-log src/roscontrol-sot-parse-log.cc)

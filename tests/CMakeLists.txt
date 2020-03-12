@@ -6,7 +6,7 @@
 ADD_EXECUTABLE(roscontrol_sot_hardware roscontrol_sot_hardware.cpp)
 TARGET_INCLUDE_DIRECTORIES(roscontrol_sot_hardware PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-TARGET_LINK_LIBRARIES(roscontrol_sot_hardware ${PROJECT_NAME}
+TARGET_LINK_LIBRARIES(roscontrol_sot_hardware rcsot_controller
   ${catkin_LIBRARIES} ${bullet_libraries})
 
 # Add the library to wrap the test device.
