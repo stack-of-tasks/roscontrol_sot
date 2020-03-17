@@ -52,6 +52,7 @@ ADD_PROJECT_DEPENDENCY(dynamic-graph-python REQUIRED)
 ADD_PROJECT_DEPENDENCY(dynamic_graph_bridge REQUIRED)
 ADD_PROJECT_DEPENDENCY(sot-core REQUIRED )
 ADD_PROJECT_DEPENDENCY(pinocchio REQUIRED)
+ADD_PROJECT_DEPENDENCY(control_toolbox REQUIRED)
 
 # Detect the controller interface version to switch code
 if(controller_interface_FOUND)
@@ -73,7 +74,8 @@ add_library(rcsot_controller
 TARGET_INCLUDE_DIRECTORIES(rcsot_controller SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
 TARGET_INCLUDE_DIRECTORIES(rcsot_controller PUBLIC $<INSTALL_INTERFACE:include>)
 TARGET_LINK_LIBRARIES(rcsot_controller ${catkin_LIBRARIES} ${bullet_LIBRARIES}
-  sot-core::sot-core dynamic_garph_bridge::sot_loader)
+  sot-core::sot-core dynamic_graph_bridge::sot_loader
+  ${control_toolbox_LIBRARIES})
 
 IF(SUFFIX_SO_VERSION)
   SET_TARGET_PROPERTIES(rcsot_controller PROPERTIES SOVERSION ${PROJECT_VERSION})
