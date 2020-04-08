@@ -1089,6 +1089,12 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       ROS_ERROR_STREAM("RCSotController::update: " << e.what());
       throw;
     }
+    // But in effort mode it means that we are sending 0
+    // Therefore implements a default PD controller on the system.
+    // Applying both to handle mixed system.
+    localStandbyEffortControlMode(period);
+    localStandbyVelocityControlMode(period);
+    localStandbyPositionControlMode();
   }
 }
 
