@@ -1,12 +1,12 @@
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![Build Status](https://gepgitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/pipeline.svg)](http://gepgitlab.laas.fr/stack-of-tasks/roscontrol_sot)
-[![Coverage report](https://gepgitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/coverage.svg?job=doc-coverage)](http://projects.laas.fr/gepetto/doc/stack-of-tasks/roscontrol_sot/master/coverage/)
+[![Build Status](https://gitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/pipeline.svg)](http://gitlab.laas.fr/stack-of-tasks/roscontrol_sot)
+[![Coverage report](https://gitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/coverage.svg?job=doc-coverage)](http://projects.laas.fr/gepetto/doc/stack-of-tasks/roscontrol_sot/master/coverage/)
 
 # Introduction
 This package encapsulates a SoT graph to control a robot in the ros-control framework.
 The intent is to make it generic and adapted to any robot through rosparam.
 As the Stack-Of-Taks is a whole-body controller it tries to connect to all the available
-resources of the robot. 
+resources of the robot.
 
 # rosparam
 
@@ -42,7 +42,7 @@ For instance:
     torso_1_joint,torso_2_joint,head_1_joint, head_2_joint,
     arm_left_1_joint, arm_left_2_joint, arm_left_3_joint, arm_left_4_joint, arm_left_5_joint, arm_left_6_joint, arm_left_7_joint, gripper_left_joint,
     arm_right_1_joint, arm_right_2_joint, arm_right_3_joint, arm_right_4_joint, arm_right_5_joint, arm_right_6_joint, arm_right_7_joint, gripper_right_joint
-  ] 
+  ]
 ```
 
 ## Specifying the map between the ros control data and the sot device entity.
@@ -68,7 +68,7 @@ using the __control_mode__ variable:
 
 ```
      control_mode: EFFORT
-```	
+```
 
 # Logging
 
