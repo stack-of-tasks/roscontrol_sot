@@ -15,20 +15,22 @@ SET(PROJECT_URL "https://github.com/${PROJECT_ORG}/${PROJECT_NAME}")
 
 # Project configuration
 SET(CXX_DISABLE_WERROR True)
-SET(CMAKE_CXX_STANDARD 11)
 SET(PROJECT_USE_CMAKE_EXPORT TRUE)
 
 # JRL-cmakemodule setup
 INCLUDE(cmake/base.cmake)
-INCLUDE(cmake/ros.cmake)
+INCLUDE(cmake/boost.cmake)
 INCLUDE(cmake/python.cmake)
+INCLUDE(cmake/ros.cmake)
 
 # Project definition
 COMPUTE_PROJECT_ARGS(PROJECT_ARGS LANGUAGES CXX)
 PROJECT(${PROJECT_NAME} ${PROJECT_ARGS})
+CHECK_MINIMAL_CXX_STANDARD(11 ENFORCE)
 
 # Project dependencies
 FINDPYTHON()
+SEARCH_FOR_BOOST_PYTHON()
 add_required_dependency(bullet)
 add_required_dependency(urdfdom)
 
@@ -48,7 +50,7 @@ SET(CATKIN_REQUIRED_COMPONENTS
 
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_REQUIRED_COMPONENTS})
 
-ADD_PROJECT_DEPENDENCY(dynamic-graph-python REQUIRED)
+ADD_PROJECT_DEPENDENCY(dynamic-graph-python 4.0.0 REQUIRED)
 ADD_PROJECT_DEPENDENCY(dynamic_graph_bridge REQUIRED)
 ADD_PROJECT_DEPENDENCY(sot-core REQUIRED )
 ADD_PROJECT_DEPENDENCY(pinocchio REQUIRED)
