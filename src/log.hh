@@ -92,7 +92,8 @@ public:
 
   void save(std::string &fileName);
   void start_it();
-  void stop_it();
+  /// \return the elapsed time since the previous \ref start_it
+  double stop_it();
 };
 } // namespace rc_sot_system
 
