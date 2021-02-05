@@ -34,8 +34,7 @@ SEARCH_FOR_BOOST_PYTHON()
 add_required_dependency(bullet)
 add_required_dependency(urdfdom)
 
-SET(CATKIN_REQUIRED_COMPONENTS
-  temperature_sensor_controller
+find_package(catkin REQUIRED COMPONENTS
   pal_hardware_interfaces
   controller_interface
   controller_manager
@@ -47,8 +46,7 @@ SET(CATKIN_REQUIRED_COMPONENTS
   realtime_tools
   rospy
   )
-
-find_package(catkin REQUIRED COMPONENTS ${CATKIN_REQUIRED_COMPONENTS})
+find_package(temperature_sensor_controller)
 
 ADD_PROJECT_DEPENDENCY(dynamic-graph-python 4.0.0 REQUIRED)
 ADD_PROJECT_DEPENDENCY(dynamic_graph_bridge REQUIRED)
@@ -65,19 +63,26 @@ endif(controller_interface_FOUND)
 
 # Detect if temperature sensor controller package is found
 # if yes then it is a PAL Robotics Forked code.
-if(temperature_sensor_controller_FOUND)
-  add_definitions(-DTEMPERATURE_SENSOR_CONTROLLER)
-endif(temperature_sensor_controller_FOUND)
 
 add_library(rcsot_controller
   src/roscontrol-sot-controller.cpp
   src/log.cpp
   )
-TARGET_INCLUDE_DIRECTORIES(rcsot_controller SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-TARGET_INCLUDE_DIRECTORIES(rcsot_controller PUBLIC $<INSTALL_INTERFACE:include>)
-TARGET_LINK_LIBRARIES(rcsot_controller ${catkin_LIBRARIES} ${bullet_LIBRARIES}
-  sot-core::sot-core dynamic_graph_bridge::sot_loader
+target_include_directories(rcsot_controller SYSTEM PUBLIC
+  ${catkin_INCLUDE_DIRS}
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(rcsot_controller
+  ${catkin_LIBRARIES}
+  ${bullet_LIBRARIES}
+  sot-core::sot-core
+  dynamic_graph_bridge::sot_loader
   ${control_toolbox_LIBRARIES})
+if (temperature_sensor_controller_FOUND)
+  target_compile_definitions(rcsot_controller PUBLIC TEMPERATURE_SENSOR_CONTROLLER)
+  message("temperature_sensor_controller_LIBRARIES: ${temperature_sensor_controller_LIBRARIES}")
+  target_include_directories(rcsot_controller SYSTEM PUBLIC ${temperature_sensor_controller_INCLUDE_DIRS})
+  target_link_libraries(rcsot_controller ${temperature_sensor_controller_LIBRARIES})
+endif()
 
 IF(SUFFIX_SO_VERSION)
   SET_TARGET_PROPERTIES(rcsot_controller PROPERTIES SOVERSION ${PROJECT_VERSION})
