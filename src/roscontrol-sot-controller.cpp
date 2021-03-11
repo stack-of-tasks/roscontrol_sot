@@ -967,7 +967,11 @@ void RCSotController::one_iteration() {
   readControl(controlValues_);
 
   // Chrono stop.
-  RcSotLog_.stop_it();
+  double it_duration = RcSotLog_.stop_it();
+  if (it_duration > dt_) {
+    ROS_WARN_THROTTLE(1, "Iteration duration (%d) bigger than max period (%d)",
+        it_duration, dt_);
+  }
 
   /// Store everything in Log.
   RcSotLog_.record(DataOneIter_);

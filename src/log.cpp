@@ -114,13 +114,15 @@ void Log::start_it() {
       timeorigin_;
 }
 
-void Log::stop_it() {
+double Log::stop_it() {
   struct timeval current;
   gettimeofday(&current, 0);
 
   time_stop_it_ =
       ((double)current.tv_sec + 0.000001 * (double)current.tv_usec) -
       timeorigin_;
+
+  return time_stop_it_ - time_start_it_;
 }
 
 void Log::save(std::string &fileName) {
