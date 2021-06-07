@@ -142,6 +142,8 @@ the SoT.
 The size of double vector and the map key are computed automatically depending
 on the number of sensors and actuators provided by the robot_hardware_interface.
 
+\image html class-diagram.svg "Class diagram with implementation for Tiago robot (in sot-tiago)"
+
 \section section_yamlfile Setting the YAML file.
 
 \subsection namespace
