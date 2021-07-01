@@ -1029,8 +1029,8 @@ void RCSotController::localStandbyVelocityControlMode(
       assert(aJoint.getName() == joint_name);
       if (first_time)
         if (verbosity_level_ > 1) {
-          ROS_INFO("Control joint %s (id %d) to %f\n", joint_name.c_str(),
-                   idJoint, aJoint.getPosition());
+          ROS_INFO("Velocity control mode: control joint %s (id %d) to %f\n",
+		   joint_name.c_str(), idJoint, aJoint.getPosition());
         }
     }
   }
@@ -1055,8 +1055,8 @@ void RCSotController::localStandbyPositionControlMode() {
       assert(aJoint.getName() == joint_name);
       if (first_time)
         if (verbosity_level_ > 1) {
-          ROS_INFO("Control joint %s (id %d) to %f\n", joint_name.c_str(),
-                   idJoint, aJoint.getPosition());
+          ROS_INFO("Position control mode: control joint %s (id %d) to %f\n",
+		   joint_name.c_str(), idJoint, aJoint.getPosition());
         }
     }
   }
