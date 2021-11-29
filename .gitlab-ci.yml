@@ -1,1 +1,1 @@
-include: http://rainboard.laas.fr/project/roscontrol-sot/.gitlab-ci.yml
+include: http://rainboard.laas.fr/project/roscontrol_sot/.gitlab-ci.yml
