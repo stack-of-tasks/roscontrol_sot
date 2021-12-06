@@ -24,14 +24,28 @@ void DataToLog::init(ProfileLog &aProfileLog) {
   orientation.resize(4 * aProfileLog.length);
   accelerometer.resize(3 * aProfileLog.length);
   gyrometer.resize(3 * aProfileLog.length);
-  force_sensors.resize(aProfileLog.nbForceSensors * 6 * aProfileLog.length);
+  force_sensors.resize(aProfileLog.nbForceSensors*6*aProfileLog.length);
   temperatures.resize(aProfileLog.nbDofs * aProfileLog.length);
   controls.resize(aProfileLog.nbDofs * aProfileLog.length);
   timestamp.resize(aProfileLog.length);
   duration.resize(aProfileLog.length);
 
   for (unsigned int i = 0; i < aProfileLog.nbDofs * aProfileLog.length; i++) {
-    motor_angle[i] = joint_angle[i] = velocities[i] = 0.0;
+    motor_angle[i] = joint_angle[i] = velocities[i] = torques[i] =
+      motor_currents[i] = temperatures[i] = controls[i] = 0.0;
+  }
+  for (unsigned int i = 0; i < 4 * aProfileLog.length; i++) {
+    orientation[i] = 0;
+  }
+  for (unsigned int i = 0; i < 3 * aProfileLog.length; i++) {
+    accelerometer[i] = gyrometer[i] = 0;
+  }
+  for (unsigned int i = 0; i < aProfileLog.nbForceSensors*6*aProfileLog.length;
+       i++) {
+    force_sensors[i] = 0;
+  }
+  for (unsigned int i = 0; i < aProfileLog.length; i++) {
+     timestamp[i] = duration[i] = 0;
   }
 }
 
