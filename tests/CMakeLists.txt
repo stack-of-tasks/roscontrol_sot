@@ -32,7 +32,9 @@ TARGET_INCLUDE_DIRECTORIES(${CONTROLLER_NAME} SYSTEM PUBLIC
 TARGET_LINK_LIBRARIES(${CONTROLLER_NAME} ${DEVICE_NAME})
 INSTALL(TARGETS ${CONTROLLER_NAME} DESTINATION lib)
 
-ADD_EXECUTABLE(sot-test-log sot-test-log.cc)
-TARGET_LINK_LIBRARIES(sot-test-log rcsot_controller)
+IF(${PYTHON_VERSION_MAJOR} GREATER 2)
+  ADD_EXECUTABLE(sot-test-log sot-test-log.cc)
+  TARGET_LINK_LIBRARIES(sot-test-log rcsot_controller)
 
-ADD_PYTHON_UNIT_TEST("py-test-log" "tests/test_log.py" "python")
+  ADD_PYTHON_UNIT_TEST("py-test-log" "tests/test_log.py" "python")
+ENDIF()
