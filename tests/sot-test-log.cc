@@ -1,10 +1,7 @@
 #include <cmath>
 #include "../src/log.hh"
 
-#define BOOST_TEST_MODULE hpp_constraints
-#include <boost/test/included/unit_test.hpp>
-
-BOOST_AUTO_TEST_CASE (logger) {
+int main() {
   rc_sot_system::DataToLog DataOneIter;
   rc_sot_system::ProfileLog profileLog;
   rc_sot_system::Log RcSotLog;
@@ -29,6 +26,4 @@ BOOST_AUTO_TEST_CASE (logger) {
   }
   std::string filename("./test.log");
   RcSotLog.save(filename);
-
-
 }
