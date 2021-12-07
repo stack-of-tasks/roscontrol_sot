@@ -56,10 +56,13 @@ ADD_PROJECT_DEPENDENCY(control_toolbox REQUIRED)
 
 # Detect the controller interface version to switch code
 if(controller_interface_FOUND)
-  if (${controller_interface_VERSION} VERSION_GREATER "0.2.5")
+  if(${controller_interface_VERSION} VERSION_GREATER "0.2.5")
     add_definitions(-DCONTROLLER_INTERFACE_KINETIC)
-  endif(${controller_interface_VERSION} VERSION_GREATER "0.2.5")
-endif(controller_interface_FOUND)
+    if(${controller_interface_VERSION} VERSION_GREATER "0.19.0")
+      add_definitions(-DCONTROLLER_INTERFACE_NOETIC)
+    endif()
+  endif()
+endif()
 
 # Detect if temperature sensor controller package is found
 # if yes then it is a PAL Robotics Forked code.
@@ -77,7 +80,7 @@ target_link_libraries(rcsot_controller
   sot-core::sot-core
   dynamic_graph_bridge::sot_loader
   ${control_toolbox_LIBRARIES})
-if (temperature_sensor_controller_FOUND)
+if(temperature_sensor_controller_FOUND)
   target_compile_definitions(rcsot_controller PUBLIC TEMPERATURE_SENSOR_CONTROLLER)
   message("temperature_sensor_controller_LIBRARIES: ${temperature_sensor_controller_LIBRARIES}")
   target_include_directories(rcsot_controller SYSTEM PUBLIC ${temperature_sensor_controller_INCLUDE_DIRS})

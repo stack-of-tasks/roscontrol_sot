@@ -173,7 +173,11 @@ bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
   lns = "hardware_interface";
 
   // Check if construction finished cleanly
-  if (state_ != ControllerBase::ControllerState::CONSTRUCTED) {
+#ifdef CONTROLLER_INTERFACE_NOETIC
+  if (state_ != ControllerState::CONSTRUCTED) {
+#else
+  if (state_ != CONSTRUCTED) {
+#endif
     ROS_ERROR("Cannot initialize this controller because it "
               "failed to be constructed");
   }
@@ -320,8 +324,11 @@ bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
   if (verbosity_level_ > 0)
     ROS_INFO_STREAM("Initialization of sot-controller Ok !");
   // success
-  state_ = ControllerBase::ControllerState::INITIALIZED;
-
+#ifdef CONTROLLER_INTERFACE_NOETIC
+  state_ = ControllerState::INITIALIZED;
+#else
+  state_ = INITIALIZED;
+#endif
   return true;
 }
 
