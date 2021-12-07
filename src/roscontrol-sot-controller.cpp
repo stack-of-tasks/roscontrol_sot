@@ -168,7 +168,6 @@ bool RCSotController::initRequest(lhi::RobotHW *robot_hw,
 bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
                                      ros::NodeHandle &,
                                      ClaimedResources &claimed_resources) {
-  using controller_interface::ControllerBase;
   std::string lns;
   lns = "hardware_interface";
 
