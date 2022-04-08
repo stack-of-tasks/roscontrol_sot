@@ -77,6 +77,12 @@ RCSotController::RCSotController()
   RESETDEBUG4();
 }
 
+RCSotController::~RCSotController() {
+  SotLoaderBasic::CleanUp();
+  using namespace ::dynamicgraph;
+  RealTimeLogger::destroy();
+}
+
 void RCSotController::displayClaimedResources(
     ClaimedResources &claimed_resources) {
 #ifdef CONTROLLER_INTERFACE_KINETIC
@@ -127,6 +133,10 @@ void RCSotController::initLogs(ros::NodeHandle &robot_nh) {
   profileLog_.length = length;
   /// Initialize the data logger for 300s.
   RcSotLog_.init(profileLog_);
+
+  using namespace ::dynamicgraph;
+  RealTimeLogger::instance().addOutputStream(
+      LoggerStreamPtr_t(new LoggerROSStream()));
 }
 
 bool RCSotController::initRequest(lhi::RobotHW *robot_hw,
@@ -944,7 +954,6 @@ void RCSotController::readControl(
 void RCSotController::one_iteration() {
   // Chrono start
   RcSotLog_.start_it();
-
   /// Update the sensors.
   fillSensors();
 
@@ -959,6 +968,7 @@ void RCSotController::one_iteration() {
 
     throw e;
   }
+
   try {
     sotController_->getControl(controlValues_);
   } catch (std::exception &e) {
@@ -1111,20 +1121,15 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
 
 void RCSotController::starting(const ros::Time &) {
   using namespace ::dynamicgraph;
-  RealTimeLogger::instance().addOutputStream(
-      LoggerStreamPtr_t(new LoggerROSStream()));
-
   fillSensors();
 }
 
 void RCSotController::stopping(const ros::Time &) {
   std::string afilename("/tmp/sot.log");
+
+  RcSotLog_.record(DataOneIter_);
   RcSotLog_.save(afilename);
 
-  SotLoaderBasic::CleanUp();
-
-  using namespace ::dynamicgraph;
-  RealTimeLogger::destroy();
 }
 
 PLUGINLIB_EXPORT_CLASS(sot_controller::RCSotController, lci::ControllerBase)

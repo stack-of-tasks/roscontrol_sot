@@ -159,6 +159,8 @@ private:
 public:
   RCSotController();
 
+  virtual ~RCSotController();
+
   /// \brief Read the configuration files,
   /// claims the request to the robot and initialize the Stack-Of-Tasks.
   bool initRequest(lhi::RobotHW *robot_hw, ros::NodeHandle &robot_nh,
