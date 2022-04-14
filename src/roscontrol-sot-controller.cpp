@@ -78,6 +78,11 @@ RCSotController::RCSotController()
 }
 
 RCSotController::~RCSotController() {
+  std::string afilename("/tmp/sot.log");
+
+  RcSotLog_.record(DataOneIter_);
+  RcSotLog_.save(afilename);
+
   SotLoaderBasic::CleanUp();
   using namespace ::dynamicgraph;
   RealTimeLogger::destroy();
@@ -1125,11 +1130,6 @@ void RCSotController::starting(const ros::Time &) {
 }
 
 void RCSotController::stopping(const ros::Time &) {
-  std::string afilename("/tmp/sot.log");
-
-  RcSotLog_.record(DataOneIter_);
-  RcSotLog_.save(afilename);
-
 }
 
 PLUGINLIB_EXPORT_CLASS(sot_controller::RCSotController, lci::ControllerBase)
