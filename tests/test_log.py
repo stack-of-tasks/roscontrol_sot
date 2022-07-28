@@ -1,14 +1,19 @@
+"""
+This file tests the output of executable sot-test-log compiled from
+tests/sot-test-log.cc.
+"""
 import unittest
 import subprocess
 import csv
 
-# This file tests the output of executable sot-test-log compiled from
-# tests/sot-test-log.cc.
-#
-# Logs are saved in binary format in file "build/tests/test.log-vstate.log",
-# then converted in ascii in file "test.log-vstate-ascii.log" and then
-# compared to the expected values.
+
 class TestLog(unittest.TestCase):
+    """
+    Logs are saved in binary format in file "build/tests/test.log-vstate.log",
+    then converted in ascii in file "test.log-vstate-ascii.log" and then
+    compared to the expected values.
+    """
+
     def test_log(self):
         subprocess.run("./sot-test-log")
         res = subprocess.run(
