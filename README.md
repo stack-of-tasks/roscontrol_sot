@@ -1,6 +1,9 @@
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![Build Status](https://gitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/pipeline.svg)](http://gitlab.laas.fr/stack-of-tasks/roscontrol_sot)
-[![Coverage report](https://gitlab.laas.fr/stack-of-tasks/roscontrol_sot/badges/master/coverage.svg?job=doc-coverage)](http://projects.laas.fr/gepetto/doc/stack-of-tasks/roscontrol_sot/master/coverage/)
+[![Pipeline status](https://gitlab.laas.fr/stack-of-tasks/roscontrol-sot/badges/master/pipeline.svg)](https://gitlab.laas.fr/stack-of-tasks/roscontrol-sot/commits/master)
+[![Coverage report](https://gitlab.laas.fr/stack-of-tasks/roscontrol-sot/badges/master/coverage.svg?job=doc-coverage)](https://gepettoweb.laas.fr/doc/stack-of-tasks/roscontrol-sot/master/coverage/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/stack-of-tasks/roscontrol-sot/master.svg)](https://results.pre-commit.ci/latest/github/stack-of-tasks/roscontrol-sot)
+
 
 # Introduction
 This package encapsulates a SoT graph to control a robot in the ros-control framework.
