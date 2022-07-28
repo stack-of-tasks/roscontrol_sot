@@ -15,6 +15,7 @@
 #include <dynamic-graph/linear-algebra.h>
 #include <dynamic-graph/signal-ptr.h>
 #include <dynamic-graph/signal.h>
+
 #include <sot/core/abstract-sot-external-interface.hh>
 #include <sot/core/device.hh>
 #include <sot/core/matrix-geometry.hh>
@@ -23,7 +24,7 @@ namespace dgsot = dynamicgraph::sot;
 namespace dg = dynamicgraph;
 
 class SoTTestDevice : public dgsot::Device {
-public:
+ public:
   static const std::string CLASS_NAME;
   static const double TIMESTEP_DEFAULT;
 
@@ -44,7 +45,7 @@ public:
 
   void timeStep(double ts) { timestep_ = ts; }
 
-protected:
+ protected:
   /// \brief Previous robot configuration.
   dg::Vector previousState_;
 
@@ -74,9 +75,8 @@ protected:
                      int t);
   void setSensorsEncoders(std::map<std::string, dgsot::SensorValues> &SensorsIn,
                           int t);
-  void
-  setSensorsVelocities(std::map<std::string, dgsot::SensorValues> &SensorsIn,
-                       int t);
+  void setSensorsVelocities(
+      std::map<std::string, dgsot::SensorValues> &SensorsIn, int t);
   void setSensorsTorquesCurrents(
       std::map<std::string, dgsot::SensorValues> &SensorsIn, int t);
   void setSensorsGains(std::map<std::string, dgsot::SensorValues> &SensorsIn,
@@ -84,11 +84,11 @@ protected:
 
   /// Intermediate variables to avoid allocation during control
   dg::Vector dgforces_;
-  dg::Vector dgRobotState_;    // motor-angles
-  dg::Vector joint_angles_;    // joint-angles
-  dg::Vector motor_angles_;    // motor-angles
-  dg::Vector dgRobotVelocity_; // motor velocities
-  dg::Vector velocities_;      // motor velocities
+  dg::Vector dgRobotState_;     // motor-angles
+  dg::Vector joint_angles_;     // joint-angles
+  dg::Vector motor_angles_;     // motor-angles
+  dg::Vector dgRobotVelocity_;  // motor velocities
+  dg::Vector velocities_;       // motor velocities
   dgsot::MatrixRotation pose;
   dg::Vector accelerometer_;
   dg::Vector gyrometer_;

@@ -8,20 +8,17 @@
  *
  */
 
-#include <dynamic_graph_bridge/ros_init.hh>
-#include <dynamic_graph_bridge/ros_interpreter.hh>
-
-#include <pinocchio/fwd.hpp>
-
-#include <sot/core/debug.hh>
-#include <sot/core/exception-abstract.hh>
-
 #include "sot-test-controller.hh"
+
+#include <ros/console.h>
 
 #include <boost/thread/condition.hpp>
 #include <boost/thread/thread.hpp>
-
-#include <ros/console.h>
+#include <dynamic_graph_bridge/ros_init.hh>
+#include <dynamic_graph_bridge/ros_interpreter.hh>
+#include <pinocchio/fwd.hpp>
+#include <sot/core/debug.hh>
+#include <sot/core/exception-abstract.hh>
 
 #define ENABLE_RT_LOG
 #include <dynamic-graph/real-time-logger.h>

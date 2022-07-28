@@ -19,8 +19,9 @@
 #pragma GCC diagnostic pop
 
 #include <control_toolbox/pid.h>
-#include <dynamic_graph_bridge/sot_loader_basic.hh>
 #include <ros/ros.h>
+
+#include <dynamic_graph_bridge/sot_loader_basic.hh>
 
 /** URDF DOM*/
 #include <urdf_parser/urdf_parser.h>
@@ -34,7 +35,7 @@ namespace lhi = hardware_interface;
 namespace lci = controller_interface;
 
 class XmlrpcHelperException : public ros::Exception {
-public:
+ public:
   XmlrpcHelperException(const std::string &what) : ros::Exception(what) {}
 };
 
@@ -66,14 +67,14 @@ typedef std::set<std::string> ClaimedResources;
 
  */
 class RCSotController : public lci::ControllerBase, SotLoaderBasic {
-protected:
+ protected:
   /// Robot nb dofs.
   size_t nbDofs_;
 
   /// Data log.
   rc_sot_system::DataToLog DataOneIter_;
 
-private:
+ private:
   /// @{ \name Ros-control related fields
 
   /// \brief Vector of joint handles.
@@ -156,7 +157,7 @@ private:
   /// Profile log
   rc_sot_system::ProfileLog profileLog_;
 
-public:
+ public:
   RCSotController();
 
   virtual ~RCSotController();
@@ -182,7 +183,7 @@ public:
   /// \brief Stopping the control
   void stopping(const ros::Time &);
 
-protected:
+ protected:
   /// Initialize the roscontrol interfaces
   bool initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
                       ros::NodeHandle &, ClaimedResources &claimed_resources);
@@ -294,6 +295,6 @@ protected:
   bool getJointControlMode(std::string &joint_name,
                            JointSotHandle &aJointSotHandle);
 };
-} // namespace sot_controller
+}  // namespace sot_controller
 
 #endif /* RC_SOT_CONTROLLER_H */
