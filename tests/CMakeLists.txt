@@ -23,10 +23,9 @@ dynamic_graph_python_module(
   "sot/test/${PYTHON_LIBRARY_NAME}" ${DEVICE_NAME}
   sot-test-${PYTHON_LIBRARY_NAME}-wrap MODULE_HEADER
   "${CMAKE_CURRENT_SOURCE_DIR}/${DEVICE_NAME}-python.hh")
-set_target_properties(
-  sot-test-${PYTHON_LIBRARY_NAME}-wrap PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-                                                  ../src) # FIXME: weird catkin
-                                                          # / dg interraction
+# FIXME: weird catkin / dg interraction
+set_target_properties(sot-test-${PYTHON_LIBRARY_NAME}-wrap
+                      PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../src)
 
 # Add the library to wrap the controller of Test.
 set(CONTROLLER_NAME sot-test-controller)

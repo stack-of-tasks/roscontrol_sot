@@ -19,7 +19,6 @@ set(PROJECT_USE_CMAKE_EXPORT TRUE)
 # JRL-cmakemodule setup
 include(cmake/base.cmake)
 include(cmake/boost.cmake)
-include(cmake/python.cmake)
 include(cmake/ros.cmake)
 
 # Project definition
@@ -28,8 +27,13 @@ project(${PROJECT_NAME} ${PROJECT_ARGS})
 check_minimal_cxx_standard(11 ENFORCE)
 
 # Project dependencies
-findpython()
-search_for_boost_python()
+add_project_dependency(dynamic-graph-python 4.0.6 REQUIRED)
+add_project_dependency(dynamic_graph_bridge REQUIRED)
+add_project_dependency(sot-core REQUIRED)
+add_project_dependency(pinocchio REQUIRED)
+include(cmake/python.cmake) # TODO: overwriting eigenpy/python.cmake
+
+add_project_dependency(control_toolbox REQUIRED)
 add_required_dependency(bullet)
 add_required_dependency(urdfdom)
 
@@ -46,12 +50,6 @@ find_package(
              realtime_tools
              rospy)
 find_package(temperature_sensor_controller)
-
-add_project_dependency(dynamic-graph-python 4.0.0 REQUIRED)
-add_project_dependency(dynamic_graph_bridge REQUIRED)
-add_project_dependency(sot-core REQUIRED)
-add_project_dependency(pinocchio REQUIRED)
-add_project_dependency(control_toolbox REQUIRED)
 
 # Detect the controller interface version to switch code
 if(controller_interface_FOUND)
