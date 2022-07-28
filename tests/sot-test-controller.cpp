@@ -8,7 +8,9 @@
  *
  */
 
-#include "sot-test-controller.hh"
+#include <pinocchio/fwd.hpp>
+
+// include pinocchio before boost
 
 #include <ros/console.h>
 
@@ -16,9 +18,10 @@
 #include <boost/thread/thread.hpp>
 #include <dynamic_graph_bridge/ros_init.hh>
 #include <dynamic_graph_bridge/ros_interpreter.hh>
-#include <pinocchio/fwd.hpp>
 #include <sot/core/debug.hh>
 #include <sot/core/exception-abstract.hh>
+
+#include "sot-test-controller.hh"
 
 #define ENABLE_RT_LOG
 #include <dynamic-graph/real-time-logger.h>
