@@ -73,11 +73,15 @@ RCSotController::RCSotController()
     : // Store 32 DoFs for 5 minutes (1 Khz: 5*60*1000)
       // -> 124 Mo of data.
       type_name_("RCSotController"), simulation_mode_(false),
-      accumulated_time_(0.0), jitter_(0.0), verbosity_level_(0) {
+      subSampling_(0), step_(0), verbosity_level_(0), io_service_(),
+      io_work_(io_service_), sotComputing_(false)
+{
   RESETDEBUG4();
 }
 
 RCSotController::~RCSotController() {
+  io_service_.stop();
+  thread_pool_.join_all();
   std::string afilename("/tmp/sot.log");
 
   RcSotLog_.record(DataOneIter_);
@@ -620,13 +624,6 @@ bool RCSotController::readParamsControlMode(ros::NodeHandle &robot_nh) {
 }
 
 bool RCSotController::readParamsdt(ros::NodeHandle &robot_nh) {
-  /// Reading the jitter is optional but it is a very good idea.
-  if (robot_nh.hasParam("/sot_controller/jitter")) {
-    robot_nh.getParam("/sot_controller/jitter", jitter_);
-    if (verbosity_level_ > 0)
-      ROS_INFO_STREAM("jitter: " << jitter_);
-  }
-
   /// Read /sot_controller/dt to know what is the control period
   if (robot_nh.hasParam("/sot_controller/dt")) {
     robot_nh.getParam("/sot_controller/dt", dt_);
@@ -952,13 +949,19 @@ void RCSotController::readControl(
       DataOneIter_.controls[i] = command_[i];
     }
 
-  } else
+  } else{
     ROS_INFO_STREAM("no control.");
+    localStandbyEffortControlMode(ros::Duration(dtRos_));
+    localStandbyVelocityControlMode(ros::Duration(dtRos_));
+    localStandbyPositionControlMode();
+  }
 }
 
 void RCSotController::one_iteration() {
+  sotComputing_ = true;
   // Chrono start
   RcSotLog_.start_it();
+
   /// Update the sensors.
   fillSensors();
 
@@ -973,21 +976,24 @@ void RCSotController::one_iteration() {
 
     throw e;
   }
-
   try {
-    sotController_->getControl(controlValues_);
+    sotController_->getControl(controlValues_copy_);
   } catch (std::exception &e) {
     std::cerr << "Failure happened during one_iteration(): "
               << "when calling getControl " << std::endl;
     std::cerr << __FILE__ << " " << __LINE__ << std::endl
-              << e.what() << std::endl;;
+              << e.what() << std::endl;
     throw e;
   }
 
-
-  /// Read the control values
-  readControl(controlValues_);
-
+  // Wait until last subsampling step to write result in controlValues_
+  while(step_ != subSampling_ - 1){
+    ros::Duration(.01*dtRos_).sleep();
+  }
+  // mutex
+  mutex_.lock();
+  controlValues_ = controlValues_copy_;
+  mutex_.unlock();
   // Chrono stop.
   double it_duration = RcSotLog_.stop_it();
   if (it_duration > dt_) {
@@ -997,6 +1003,7 @@ void RCSotController::one_iteration() {
 
   /// Store everything in Log.
   RcSotLog_.record(DataOneIter_);
+  sotComputing_ = false;
 }
 
 void RCSotController::localStandbyEffortControlMode(
@@ -1085,16 +1092,81 @@ void RCSotController::localStandbyPositionControlMode() {
   first_time = false;
 }
 
+void RCSotController::computeSubSampling(const ros::Duration &period)
+{
+  if (subSampling_ != 0) return; // already computed
+  dtRos_ = period.toSec();
+  double ratio = dt_/dtRos_;
+  if (fabs(ratio - std::round(ratio)) > 1e-8){
+    std::ostringstream os;
+    os << "SoT period (" << dt_ << ") is not a multiple of roscontrol period ("
+       << dtRos_ << "). Modify rosparam /sot_controller/dt to a "
+      "multiple of roscontrol period.";
+    throw std::runtime_error(os.str().c_str());
+  }
+  subSampling_ = static_cast<std::size_t>(std::round(ratio));
+  // First time method update is called, step_ will turn to 1.
+  step_ = subSampling_ -1;
+  ROS_INFO_STREAM("Subsampling SoT graph computation by ratio "
+		  << subSampling_);
+  if (subSampling_ != 1){
+    // create thread in this method instead of in constructor to inherit the
+    // same priority level.
+    // If subsampling is equal to one, the control graph is evaluated in the
+    // same thread.
+    thread_pool_.create_thread(boost::bind(&boost::asio::io_service::run,
+					   &io_service_));
+  }
+
+}
 void RCSotController::update(const ros::Time &, const ros::Duration &period) {
   // Do not send any control if the dynamic graph is not started
   if (!isDynamicGraphStopped()) {
+    // Increment step at beginning of this method since the end time may
+    // vary a lot.
+    ++ step_;
+    if (step_ == subSampling_) step_ = 0;
     try {
-      double periodInSec = period.toSec();
-      if (periodInSec + accumulated_time_ > dt_ - jitter_) {
-        one_iteration();
-        accumulated_time_ = 0.0;
-      } else
-        accumulated_time_ += periodInSec;
+      // If subsampling is equal to 1, i.e. no subsampling, evaluate
+      // control graph in this thread
+      if (subSampling_ == 1){
+	one_iteration();
+      } else {
+	if (step_ == 0){
+	  // If previous graph evaluation is not finished, do not start a new
+	  // one.
+	  if (!sotComputing_){
+	    io_service_.post(boost::bind(&RCSotController::one_iteration,this));
+	  } else{
+	    ROS_INFO_STREAM("Sot computation not finished yet.");
+	  }
+	  // protected read control
+	  mutex_.lock();
+	  /// Read the control values
+	  readControl(controlValues_);
+	  mutex_.unlock();
+	} else{
+	  // protected read control
+	  mutex_.lock();
+	  // If the robot is controlled in position, update the reference
+	  // posture with the latest velocity.
+	  // Note that the entry "velocity" only exists if the robot is
+	  // controlled in position.
+	  if (controlValues_.find("velocity") != controlValues_.end()){
+	    std::vector<double> control = controlValues_["control"].getValues();
+	    const std::vector<double>& velocity = controlValues_["velocity"].
+	      getValues();
+	    for (std::size_t i=0; i<control.size(); ++i){
+	      control[i] += dtRos_ * velocity[i];
+	    }
+	    controlValues_["control"].setValues(control);
+	  }
+	  /// Read the control values
+	  readControl(controlValues_);
+	  mutex_.unlock();
+	}
+      }
+
     } catch (std::exception const &exc) {
       ROS_ERROR_STREAM("Failure happened during one_iteration evaluation: "
                 << exc.what() << "\nUse gdb to investiguate the problem\n"
@@ -1107,6 +1179,7 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       throw;
     }
   } else {
+    computeSubSampling(period);
     /// Update the sensors.
     fillSensors();
     try {
