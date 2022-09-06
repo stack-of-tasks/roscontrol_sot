@@ -5,6 +5,9 @@
 #ifndef RC_SOT_CONTROLLER_H
 #define RC_SOT_CONTROLLER_H
 
+#include <atomic>
+#include <boost/asio/io_service.hpp>
+#include <boost/thread/thread.hpp>
 #include <map>
 #include <string>
 
@@ -75,6 +78,7 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   rc_sot_system::DataToLog DataOneIter_;
 
  private:
+  void computeSubSampling(const ros::Duration &period);
   /// @{ \name Ros-control related fields
 
   /// \brief Vector of joint handles.
@@ -141,12 +145,12 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   /// * torques
   std::map<std::string, std::string> mapFromRCToSotDevice_;
 
-  /// To be able to subsample control period.
-  double accumulated_time_;
-
-  /// Jitter for the subsampling.
-  double jitter_;
-
+  /// ratio between sot control period and roscontrol control period
+  std::size_t subSampling_;
+  /// iteration index of the subsampling. Ranges from 0 to subSampling_-1
+  std::atomic<std::size_t> step_;
+  /// double roscontrol sampling period
+  double dtRos_;
   /// \brief Verbosity level for ROS messages during initRequest/initialization
   /// phase. 0: no messages or error 1: info 2: debug
   int verbosity_level_;
@@ -156,6 +160,16 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
 
   /// Profile log
   rc_sot_system::ProfileLog profileLog_;
+
+  /// thread pool
+  boost::asio::io_service io_service_;
+  boost::asio::io_service::work io_work_;
+  boost::thread_group thread_pool_;
+  // mutex to protect access to controlValues_
+  std::mutex mutex_;
+  // Flag informing whether the graph computation is running to avoid starting
+  // a computation if the previous one has no finished.
+  bool sotComputing_;
 
  public:
   RCSotController();
@@ -274,6 +288,7 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
 
   /// Map of control values
   std::map<std::string, dgs::ControlValues> controlValues_;
+  std::map<std::string, dgs::ControlValues> controlValues_copy_;
 
   /// Control period
   double dt_;
