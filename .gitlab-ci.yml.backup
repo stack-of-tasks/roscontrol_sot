@@ -11,7 +11,7 @@ variables:
 cache:
   paths:
     - ccache
-    
+
 .robotpkg-roscontrol-sot: &robotpkg-roscontrol-sot
   variables:
     ROBOTPKG: roscontrol-sot
@@ -29,7 +29,7 @@ cache:
     - make install
     - cd work.$(hostname)/$(make show-var VARNAME=DISTNAME)
     - make test
- 
+
   except:
     - gh-pages
 
@@ -41,17 +41,17 @@ robotpkg-roscontrol-sot-14.04:
     - cd build
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/ccache
-    - apt-get update    
-    - apt-get install -y ros-indigo-twist-mux ros-indigo-joy-teleop ros-indigo-moveit-ros-move-group  ros-indigo-humanoid-nav-msgs ros-indigo-four-wheel-steering-msgs 
+    - apt-get update
+    - apt-get install -y ros-indigo-twist-mux ros-indigo-joy-teleop ros-indigo-moveit-ros-move-group  ros-indigo-humanoid-nav-msgs ros-indigo-four-wheel-steering-msgs
   image: ${IMAGE}:14.04
-  
+
 robotpkg-roscontrol-sot-16.04:
   before_script:
     - mkdir -p build/ccache
     - cd build
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/ccache
-    - apt-get update        
+    - apt-get update
     - apt-get install -y ros-kinetic-twist-mux ros-kinetic-joy-teleop ros-kinetic-moveit-ros-move-group  ros-kinetic-humanoid-nav-msgs ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser
   script:
     - cd /root/robotpkg
@@ -69,7 +69,7 @@ robotpkg-roscontrol-sot-16.04:
   except:
     - gh-pages
   image: ${IMAGE}:16.04
-  
+
 robotpkg-roscontrol-sot-dubnium:
   <<: *robotpkg-roscontrol-sot
   before_script:
@@ -98,5 +98,5 @@ robotpkg-roscontrol-sot-dubnium:
     - make install
     - cd work.*/${PROJECT}*/
   except:
-    - gh-pages    
+    - gh-pages
   image: ${IMAGE}:dubnium

@@ -15,15 +15,16 @@
 #include <dynamic-graph/linear-algebra.h>
 #include <dynamic-graph/signal-ptr.h>
 #include <dynamic-graph/signal.h>
+
+#include <dynamic_graph_bridge/ros_interpreter.hh>
 #include <sot/core/abstract-sot-external-interface.hh>
 #include <sot/core/device.hh>
 
 #include "sot-test-device.hh"
-#include <dynamic_graph_bridge/ros_interpreter.hh>
 namespace dgsot = dynamicgraph::sot;
 
 class SoTTestController : public dgsot::AbstractSotExternalInterface {
-public:
+ public:
   static const std::string LOG_PYTHON;
 
   SoTTestController();
@@ -45,7 +46,7 @@ public:
   /// Embedded python interpreter accessible via Corba/ros
   boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
 
-protected:
+ protected:
   // Update output port with the control computed from the
   // dynamic graph.
   void updateRobotState(std::vector<double> &anglesIn);

@@ -2,7 +2,7 @@
 
   <!-- Load URDF file -->
   <param name="robot_description" command="$(find xacro)/xacro.py $(find roscontrol_sot)/urdf/test.urdf"  />
-  
+
   <!-- Spawn simulated hardware -->
   <node name="roscontrol_sot_hardware_spawner"
         pkg="roscontrol_sot" type="roscontrol_sot_hardware" output="screen"
@@ -21,7 +21,6 @@
   <node name="sot_controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
         args="sot_controller" />
-       
+
 
 </launch>
-

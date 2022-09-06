@@ -57,7 +57,7 @@ struct DataToLog {
 };
 
 class Log {
-private:
+ private:
   /// Profile Log
   ProfileLog profileLog_;
 
@@ -79,10 +79,9 @@ private:
   // \note avector is a circular buffer. Data will be written from
   //       start to N, and then from 0 to start.
   void saveVector(std::string &filename, std::string &suffix,
-                  const std::vector<double> &avector,
-                  std::size_t size);
+                  const std::vector<double> &avector, std::size_t size);
 
-public:
+ public:
   Log();
 
   void init(ProfileLog &aProfileLog);
@@ -93,7 +92,7 @@ public:
   /// \return the elapsed time since the previous \ref start_it
   double stop_it();
 };
-} // namespace rc_sot_system
+}  // namespace rc_sot_system
 
 #pragma GCC diagnostic push
 #pragma GCC system_header

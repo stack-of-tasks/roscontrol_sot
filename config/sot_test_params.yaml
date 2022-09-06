@@ -10,7 +10,7 @@ gains:
 joint_state_controller:
   type: joint_state_controller/JointStateController
   publish_rate: 50
-    
+
 sot_controller:
   type: sot_controller/RCSotController
   libname: libsot-test-controller.so
@@ -39,4 +39,3 @@ sot_controller:
   dt: 0.001
   jitter: 0.0004
   verbosity_level: 25
-  

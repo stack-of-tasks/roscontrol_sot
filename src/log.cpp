@@ -4,10 +4,12 @@
    Object to log the low-level informations of a robot.
 */
 #include "log.hh"
+
+#include <sys/time.h>
+
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <sys/time.h>
 
 using namespace std;
 using namespace rc_sot_system;
@@ -24,7 +26,7 @@ void DataToLog::init(ProfileLog &aProfileLog) {
   orientation.resize(4 * aProfileLog.length);
   accelerometer.resize(3 * aProfileLog.length);
   gyrometer.resize(3 * aProfileLog.length);
-  force_sensors.resize(aProfileLog.nbForceSensors*6*aProfileLog.length);
+  force_sensors.resize(aProfileLog.nbForceSensors * 6 * aProfileLog.length);
   temperatures.resize(aProfileLog.nbDofs * aProfileLog.length);
   controls.resize(aProfileLog.nbDofs * aProfileLog.length);
   timestamp.resize(aProfileLog.length);
@@ -32,7 +34,7 @@ void DataToLog::init(ProfileLog &aProfileLog) {
 
   for (unsigned int i = 0; i < aProfileLog.nbDofs * aProfileLog.length; i++) {
     motor_angle[i] = joint_angle[i] = velocities[i] = torques[i] =
-      motor_currents[i] = temperatures[i] = controls[i] = 0.0;
+        motor_currents[i] = temperatures[i] = controls[i] = 0.0;
   }
   for (unsigned int i = 0; i < 4 * aProfileLog.length; i++) {
     orientation[i] = 0;
@@ -40,12 +42,12 @@ void DataToLog::init(ProfileLog &aProfileLog) {
   for (unsigned int i = 0; i < 3 * aProfileLog.length; i++) {
     accelerometer[i] = gyrometer[i] = 0;
   }
-  for (unsigned int i = 0; i < aProfileLog.nbForceSensors*6*aProfileLog.length;
-       i++) {
+  for (unsigned int i = 0;
+       i < aProfileLog.nbForceSensors * 6 * aProfileLog.length; i++) {
     force_sensors[i] = 0;
   }
   for (unsigned int i = 0; i < aProfileLog.length; i++) {
-     timestamp[i] = duration[i] = 0;
+    timestamp[i] = duration[i] = 0;
   }
 }
 
@@ -116,7 +118,7 @@ void Log::record(DataToLog &aDataToLog) {
     lref_ = 0;
     lrefts_ = 0;
   }
-  assert(lref_ == lrefts_*profileLog_.nbDofs);
+  assert(lref_ == lrefts_ * profileLog_.nbDofs);
 }
 
 void Log::start_it() {
@@ -140,7 +142,7 @@ double Log::stop_it() {
 }
 
 void Log::save(std::string &fileName) {
-  assert(lref_ == lrefts_*profileLog_.nbDofs);
+  assert(lref_ == lrefts_ * profileLog_.nbDofs);
 
   std::string suffix("-mastate.log");
   saveVector(fileName, suffix, StoredData_.motor_angle, profileLog_.nbDofs);
@@ -162,7 +164,7 @@ void Log::save(std::string &fileName) {
   suffix = oss.str();
   if (profileLog_.nbForceSensors > 0) {
     saveVector(fileName, suffix, StoredData_.force_sensors,
-	       6 * profileLog_.nbForceSensors);
+               6 * profileLog_.nbForceSensors);
   }
 
   suffix = "-temperatures.log";

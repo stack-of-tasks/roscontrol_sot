@@ -1,4 +1,5 @@
 #include <cmath>
+
 #include "../src/log.hh"
 
 int main() {
@@ -15,12 +16,12 @@ int main() {
   profileLog.length = 100;
   RcSotLog.init(profileLog);
 
-  for (std::size_t i=0; i<250; ++i){
-    for (std::size_t j=0; j<nbDofs; ++j){
+  for (std::size_t i = 0; i < 250; ++i) {
+    for (std::size_t j = 0; j < nbDofs; ++j) {
       DataOneIter.motor_angle[j] = DataOneIter.joint_angle[j] =
-	DataOneIter.velocities[j] = DataOneIter.torques[j] =
-	DataOneIter.motor_currents[j] = DataOneIter.temperatures[j] =
-	DataOneIter.controls[j] = (double)(i+j);
+          DataOneIter.velocities[j] = DataOneIter.torques[j] =
+              DataOneIter.motor_currents[j] = DataOneIter.temperatures[j] =
+                  DataOneIter.controls[j] = (double)(i + j);
     }
     RcSotLog.record(DataOneIter);
   }
