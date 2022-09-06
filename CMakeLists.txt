@@ -31,7 +31,6 @@ add_project_dependency(dynamic-graph-python 4.0.6 REQUIRED)
 add_project_dependency(dynamic_graph_bridge REQUIRED)
 add_project_dependency(sot-core REQUIRED)
 add_project_dependency(pinocchio REQUIRED)
-include(cmake/python.cmake) # TODO: overwriting eigenpy/python.cmake
 
 add_project_dependency(control_toolbox REQUIRED)
 add_required_dependency(bullet)
