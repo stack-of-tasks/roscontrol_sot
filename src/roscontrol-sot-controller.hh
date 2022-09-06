@@ -5,12 +5,11 @@
 #ifndef RC_SOT_CONTROLLER_H
 #define RC_SOT_CONTROLLER_H
 
+#include <atomic>
+#include <boost/asio/io_service.hpp>
+#include <boost/thread/thread.hpp>
 #include <map>
 #include <string>
-#include <atomic>
-
-#include <boost/thread/thread.hpp>
-#include <boost/asio/io_service.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC system_header
@@ -78,8 +77,7 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   /// Data log.
   rc_sot_system::DataToLog DataOneIter_;
 
-private:
-
+ private:
   void computeSubSampling(const ros::Duration &period);
   /// @{ \name Ros-control related fields
 
@@ -150,7 +148,7 @@ private:
   /// ratio between sot control period and roscontrol control period
   std::size_t subSampling_;
   /// iteration index of the subsampling. Ranges from 0 to subSampling_-1
-  std::atomic <std::size_t> step_;
+  std::atomic<std::size_t> step_;
   /// double roscontrol sampling period
   double dtRos_;
   /// \brief Verbosity level for ROS messages during initRequest/initialization
@@ -172,7 +170,8 @@ private:
   // Flag informing whether the graph computation is running to avoid starting
   // a computation if the previous one has no finished.
   bool sotComputing_;
-public:
+
+ public:
   RCSotController();
 
   virtual ~RCSotController();
