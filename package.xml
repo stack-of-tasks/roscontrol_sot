@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>roscontrol_sot</name>
-  <version>0.6.1</version>
+  <version>0.6.2</version>
   <description>Wrapping the Stack-of-tasks framework in ros-control</description>
 
   <!-- Maintainer email -->
