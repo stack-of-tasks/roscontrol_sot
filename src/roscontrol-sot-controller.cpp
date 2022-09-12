@@ -74,11 +74,12 @@ RCSotController::RCSotController()
        // -> 124 Mo of data.
       type_name_("RCSotController"),
       simulation_mode_(false),
-      subSampling_(0),
+      subSampling_(1),
       step_(0),
       verbosity_level_(0),
       io_service_(),
       io_work_(io_service_),
+      thread_created_(false),
       sotComputing_(false) {
   RESETDEBUG4();
 }
@@ -622,6 +623,9 @@ bool RCSotController::readParamsControlMode(ros::NodeHandle &robot_nh) {
 }
 
 bool RCSotController::readParamsdt(ros::NodeHandle &robot_nh) {
+  // Get subsampling ratio of the stack of task: sot period / roscontrol period
+  // If param does not exist default value is 1
+  robot_nh.getParam("/sot_controller/subsampling", subSampling_);
   /// Read /sot_controller/dt to know what is the control period
   if (robot_nh.hasParam("/sot_controller/dt")) {
     robot_nh.getParam("/sot_controller/dt", dt_);
@@ -941,8 +945,8 @@ void RCSotController::readControl(
 
   } else {
     ROS_INFO_STREAM("no control.");
-    localStandbyEffortControlMode(ros::Duration(dtRos_));
-    localStandbyVelocityControlMode(ros::Duration(dtRos_));
+    localStandbyEffortControlMode(ros::Duration(dt_/subSampling_));
+    localStandbyVelocityControlMode(ros::Duration(dt_/subSampling_));
     localStandbyPositionControlMode();
   }
 }
@@ -978,7 +982,7 @@ void RCSotController::one_iteration() {
 
   // Wait until last subsampling step to write result in controlValues_
   while (step_ != subSampling_ - 1) {
-    ros::Duration(.01 * dtRos_).sleep();
+    ros::Duration(.01 * dt_/subSampling_).sleep();
   }
   // mutex
   mutex_.lock();
@@ -1082,30 +1086,18 @@ void RCSotController::localStandbyPositionControlMode() {
   first_time = false;
 }
 
-void RCSotController::computeSubSampling(const ros::Duration &period) {
-  if (subSampling_ != 0) return;  // already computed
-  dtRos_ = period.toSec();
-  double ratio = dt_ / dtRos_;
-  if (fabs(ratio - std::round(ratio)) > 1e-8) {
-    std::ostringstream os;
-    os << "SoT period (" << dt_ << ") is not a multiple of roscontrol period ("
-       << dtRos_
-       << "). Modify rosparam /sot_controller/dt to a "
-          "multiple of roscontrol period.";
-    throw std::runtime_error(os.str().c_str());
-  }
-  subSampling_ = static_cast<std::size_t>(std::round(ratio));
-  // First time method update is called, step_ will turn to 1.
-  step_ = subSampling_ - 1;
-  ROS_INFO_STREAM("Subsampling SoT graph computation by ratio "
-                  << subSampling_);
-  if (subSampling_ != 1) {
+void RCSotController::computeSubSampling() {
+  if ((subSampling_ != 1) && !thread_created_){
+    step_ = subSampling_ - 1;
+    ROS_INFO_STREAM("Subsampling SoT graph computation by ratio "
+                    << subSampling_);
     // create thread in this method instead of in constructor to inherit the
     // same priority level.
     // If subsampling is equal to one, the control graph is evaluated in the
     // same thread.
     thread_pool_.create_thread(
         boost::bind(&boost::asio::io_service::run, &io_service_));
+    thread_created_ = true;
   }
 }
 void RCSotController::update(const ros::Time &, const ros::Duration &period) {
@@ -1120,6 +1112,7 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       // control graph in this thread
       if (subSampling_ == 1) {
         one_iteration();
+        readControl(controlValues_);
       } else {
         if (step_ == 0) {
           // If previous graph evaluation is not finished, do not start a new
@@ -1147,7 +1140,7 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
             const std::vector<double> &velocity =
                 controlValues_["velocity"].getValues();
             for (std::size_t i = 0; i < control.size(); ++i) {
-              control[i] += dtRos_ * velocity[i];
+              control[i] += period.toSec() * velocity[i];
             }
             controlValues_["control"].setValues(control);
           }
@@ -1171,7 +1164,7 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       throw;
     }
   } else {
-    computeSubSampling(period);
+    computeSubSampling();
     /// Update the sensors.
     fillSensors();
     try {
