@@ -945,8 +945,8 @@ void RCSotController::readControl(
 
   } else {
     ROS_INFO_STREAM("no control.");
-    localStandbyEffortControlMode(ros::Duration(dt_/subSampling_));
-    localStandbyVelocityControlMode(ros::Duration(dt_/subSampling_));
+    localStandbyEffortControlMode(ros::Duration(dt_ / subSampling_));
+    localStandbyVelocityControlMode(ros::Duration(dt_ / subSampling_));
     localStandbyPositionControlMode();
   }
 }
@@ -982,7 +982,7 @@ void RCSotController::one_iteration() {
 
   // Wait until last subsampling step to write result in controlValues_
   while (step_ != subSampling_ - 1) {
-    ros::Duration(.01 * dt_/subSampling_).sleep();
+    ros::Duration(.01 * dt_ / subSampling_).sleep();
   }
   // mutex
   mutex_.lock();
@@ -1087,7 +1087,7 @@ void RCSotController::localStandbyPositionControlMode() {
 }
 
 void RCSotController::computeSubSampling() {
-  if ((subSampling_ != 1) && !thread_created_){
+  if ((subSampling_ != 1) && !thread_created_) {
     step_ = subSampling_ - 1;
     ROS_INFO_STREAM("Subsampling SoT graph computation by ratio "
                     << subSampling_);
