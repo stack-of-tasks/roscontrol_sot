@@ -556,8 +556,11 @@ bool RCSotController::readParamsJointNames(ros::NodeHandle &robot_nh) {
         return false;
       }
     }
-  } else
+  } else {
+    ROS_ERROR("ROS parameter \"/sot_controller/joint_names\" shoud be defined.")
+      ;
     return false;
+  }
 
   /// Deduce from this the degree of freedom number.
   nbDofs_ = joints_name_.size();
