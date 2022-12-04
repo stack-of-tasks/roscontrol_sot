@@ -557,8 +557,8 @@ bool RCSotController::readParamsJointNames(ros::NodeHandle &robot_nh) {
       }
     }
   } else {
-    ROS_ERROR("ROS parameter \"/sot_controller/joint_names\" shoud be defined.")
-      ;
+    ROS_ERROR(
+        "ROS parameter \"/sot_controller/joint_names\" shoud be defined.");
     return false;
   }
 
