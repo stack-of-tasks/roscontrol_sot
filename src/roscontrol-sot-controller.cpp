@@ -941,7 +941,8 @@ void RCSotController::readControl(
     std::string &lmapRC2Sot = it_mapRC2Sot->second;
     command_ = controlValues[lmapRC2Sot].getValues();
     ODEBUG4("angleControl_.size() = " << command_.size());
-    for (unsigned int i = 0; i < command_.size(); ++i) {
+    for (unsigned int i = 0; i < std::min(command_.size(), joints_.size());
+         ++i) {
       joints_[joints_name_[i]].joint.setCommand(command_[i]);
       DataOneIter_.controls[i] = command_[i];
     }
