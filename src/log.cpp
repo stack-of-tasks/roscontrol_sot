@@ -90,28 +90,35 @@ void Log::record(DataToLog &aDataToLog) {
       StoredData_.controls[JointID + lref_] = aDataToLog.controls[JointID];
   }
   for (unsigned int axis = 0; axis < 3; axis++) {
-    StoredData_.accelerometer[lrefts_ * 3 + axis] =
-        aDataToLog.accelerometer[axis];
-    StoredData_.gyrometer[lrefts_ * 3 + axis] = aDataToLog.gyrometer[axis];
+    if (StoredData_.accelerometer.size() >= lrefts_ * 3 + 3)
+      StoredData_.accelerometer[lrefts_ * 3 + axis] =
+          aDataToLog.accelerometer[axis];
+  }
+  for (unsigned int axis = 0; axis < 3; axis++) {
+    if (StoredData_.gyrometer.size() >= lrefts_ * 3 + 3)
+      StoredData_.gyrometer[lrefts_ * 3 + axis] = aDataToLog.gyrometer[axis];
   }
   std::size_t width_pad = 6 * profileLog_.nbForceSensors;
 
   for (unsigned int fsID = 0; fsID < profileLog_.nbForceSensors; fsID++) {
     for (unsigned int axis = 0; axis < 6; axis++) {
-      StoredData_.force_sensors[lrefts_ * width_pad + fsID * 6 + axis] =
-          aDataToLog.force_sensors[fsID * 6 + axis];
+      if (StoredData_.force_sensors.size() >
+          lrefts_ * width_pad + (profileLog_.nbForceSensors - 1) * 6 + 5)
+        StoredData_.force_sensors[lrefts_ * width_pad + fsID * 6 + axis] =
+            aDataToLog.force_sensors[fsID * 6 + axis];
     }
   }
 
   struct timeval current;
   gettimeofday(&current, 0);
 
-  StoredData_.timestamp[lrefts_] =
-      ((double)current.tv_sec + 0.000001 * (double)current.tv_usec) -
-      timeorigin_;
+  if (StoredData_.timestamp.size() > lrefts_) {
+    StoredData_.timestamp[lrefts_] =
+        ((double)current.tv_sec + 0.000001 * (double)current.tv_usec) -
+        timeorigin_;
 
-  StoredData_.duration[lrefts_] = time_stop_it_ - time_start_it_;
-
+    StoredData_.duration[lrefts_] = time_stop_it_ - time_start_it_;
+  }
   lref_ += profileLog_.nbDofs;
   lrefts_++;
   if (lref_ >= profileLog_.nbDofs * profileLog_.length) {
