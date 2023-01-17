@@ -223,7 +223,8 @@ void Log::saveVector(std::string &fileName, std::string &suffix,
         dt = StoredData_.timestamp[0] -
              StoredData_.timestamp[profileLog_.length - 1];
       } else
-        dt = StoredData_.timestamp[k] - StoredData_.timestamp[k - 1];
+        dt = std::max(0., StoredData_.timestamp[k] -
+                      StoredData_.timestamp[k - 1]);
       writeToBinaryFile(aof, StoredData_.timestamp[i], dt, avector, idx, size);
       idx = (idx + size) % N;
     }
