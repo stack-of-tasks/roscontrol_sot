@@ -955,7 +955,7 @@ void RCSotController::readControl(
   }
 }
 
-void RCSotController::one_iteration() {
+void RCSotController::one_iteration(const ros::Duration &period) {
   sotComputing_ = true;
   // Chrono start
   RcSotLog_.start_it();
@@ -975,7 +975,7 @@ void RCSotController::one_iteration() {
     throw e;
   }
   try {
-    sotController_->getControl(controlValues_copy_);
+    sotController_->getControl(controlValues_copy_, period.toSec());
   } catch (std::exception &e) {
     std::cerr << "Failure happened during one_iteration(): "
               << "when calling getControl " << std::endl;
@@ -1115,7 +1115,7 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
       // If subsampling is equal to 1, i.e. no subsampling, evaluate
       // control graph in this thread
       if (subSampling_ == 1) {
-        one_iteration();
+        one_iteration(period);
         readControl(controlValues_);
       } else {
         if (step_ == 0) {
@@ -1123,7 +1123,7 @@ void RCSotController::update(const ros::Time &, const ros::Duration &period) {
           // one.
           if (!sotComputing_) {
             io_service_.post(
-                boost::bind(&RCSotController::one_iteration, this));
+                boost::bind(&RCSotController::one_iteration, this, period));
           } else {
             ROS_INFO_STREAM("Sot computation not finished yet.");
           }

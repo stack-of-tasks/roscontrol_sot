@@ -296,14 +296,15 @@ void SoTTestDevice::cleanupSetSensors(
   setSensors(SensorsIn);
 }
 
-void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut) {
+void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut,
+                               const double& period) {
   ODEBUG5FULL("start");
   sotDEBUGIN(25);
   vector<double> anglesOut;
   anglesOut.resize(state_.size());
 
   // Integrate control
-  increment(timestep_);
+  increment(period);
   sotDEBUG(25) << "state = " << state_ << std::endl;
   sotDEBUG(25) << "diff  = "
                << ((previousState_.size() == state_.size())

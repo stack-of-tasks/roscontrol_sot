@@ -41,7 +41,8 @@ class SoTTestDevice : public dgsot::Device {
 
   void cleanupSetSensors(std::map<std::string, dgsot::SensorValues> &sensorsIn);
 
-  void getControl(std::map<std::string, dgsot::ControlValues> &anglesOut);
+  void getControl(std::map<std::string, dgsot::ControlValues> &anglesOut,
+                  const double& period);
 
   void timeStep(double ts) { timestep_ = ts; }
 
