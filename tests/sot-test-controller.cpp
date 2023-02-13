@@ -89,10 +89,10 @@ void SoTTestController::cleanupSetSensors(
 }
 
 void SoTTestController::getControl(
-    map<string, dgsot::ControlValues> &controlOut) {
+    map<string, dgsot::ControlValues> &controlOut, const double& period) {
   try {
     sotDEBUG(25) << __FILE__ << __FUNCTION__ << "(#" << __LINE__ << ")" << endl;
-    device_->getControl(controlOut);
+    device_->getControl(controlOut, period);
     sotDEBUG(25) << __FILE__ << __FUNCTION__ << "(#" << __LINE__ << ")" << endl;
   } catch (dynamicgraph::sot::ExceptionAbstract &err) {
     std::cout << __FILE__ << " " << __FUNCTION__ << " (" << __LINE__ << ") "

@@ -279,7 +279,9 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   void localStandbyPositionControlMode();
 
   ///@}
-  /// Extract control values to send to the simulator.
+  /// Extract control values to send to the motors.
+  /// \param controlValues map string to vector of double. The function will fill in
+  ///        controlValues["control"]
   void readControl(std::map<std::string, dgs::ControlValues> &controlValues);
 
   /// Map of sensor readings
@@ -298,7 +300,8 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   std::vector<double> command_;
 
   /// One iteration: read sensor, compute the control law, apply control.
-  void one_iteration();
+  /// \param period time since last call. Useful when realtime is not enforced correctly.
+  void one_iteration(const ros::Duration &period);
 
   /// Read URDF model from /robot_description parameter.
   bool readUrdf(ros::NodeHandle &robot_nh);
