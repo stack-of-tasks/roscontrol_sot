@@ -89,7 +89,7 @@ void SoTTestController::cleanupSetSensors(
 }
 
 void SoTTestController::getControl(
-    map<string, dgsot::ControlValues> &controlOut, const double& period) {
+    map<string, dgsot::ControlValues> &controlOut, const double &period) {
   try {
     sotDEBUG(25) << __FILE__ << __FUNCTION__ << "(#" << __LINE__ << ")" << endl;
     device_->getControl(controlOut, period);

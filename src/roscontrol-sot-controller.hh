@@ -280,7 +280,8 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
 
   ///@}
   /// Extract control values to send to the motors.
-  /// \param controlValues map string to vector of double. The function will fill in
+  /// \param controlValues map string to vector of double. The function will
+  /// fill in
   ///        controlValues["control"]
   void readControl(std::map<std::string, dgs::ControlValues> &controlValues);
 
@@ -300,7 +301,8 @@ class RCSotController : public lci::ControllerBase, SotLoaderBasic {
   std::vector<double> command_;
 
   /// One iteration: read sensor, compute the control law, apply control.
-  /// \param period time since last call. Useful when realtime is not enforced correctly.
+  /// \param period time since last call. Useful when realtime is not enforced
+  /// correctly.
   void one_iteration(const ros::Duration &period);
 
   /// Read URDF model from /robot_description parameter.

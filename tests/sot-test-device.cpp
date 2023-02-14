@@ -297,7 +297,7 @@ void SoTTestDevice::cleanupSetSensors(
 }
 
 void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut,
-                               const double& period) {
+                               const double &period) {
   ODEBUG5FULL("start");
   sotDEBUGIN(25);
   vector<double> anglesOut;
