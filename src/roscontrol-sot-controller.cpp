@@ -171,20 +171,8 @@ bool RCSotController::initRequest(lhi::RobotHW *robot_hw,
   ROS_WARN("initRequest 4");
   /// Create SoT
   SotLoaderBasic::Initialization();
+  sotController_->setControlSize((int)joints_name_.size());
   ROS_WARN("initRequest 5");
-  /// Fill desired position during the phase where the robot is waiting.
-  for (unsigned int idJoint = 0; idJoint < joints_.size(); idJoint++) {
-    std::string joint_name = joints_name_[idJoint];
-    std::map<std::string, ControlPDMotorControlData>::iterator search_ecpd =
-        effort_mode_pd_motors_.find(joint_name);
-
-    if (search_ecpd != effort_mode_pd_motors_.end()) {
-      /// If we are in effort mode then the device
-      /// should not do any integration.
-      sotController_->setNoIntegration();
-    }
-  }
-  ROS_WARN("initRequest 6");
   return true;
 }
 
