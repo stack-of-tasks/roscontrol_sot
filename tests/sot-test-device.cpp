@@ -101,16 +101,6 @@ SoTTestDevice::SoTTestDevice(std::string RobotName)
 
   using namespace dynamicgraph::command;
   std::string docstring;
-  /* Command increment. */
-  docstring =
-      "\n"
-      "    Integrate dynamics for time step provided as input\n"
-      "\n"
-      "      take one floating point number as input\n"
-      "\n";
-  addCommand("increment",
-             makeCommandVoid1((Device &)*this, &Device::increment, docstring));
-
   sotDEBUGOUT(25);
 }
 
@@ -303,8 +293,6 @@ void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut,
   vector<double> anglesOut;
   anglesOut.resize(state_.size());
 
-  // Integrate control
-  increment(period);
   sotDEBUG(25) << "state = " << state_ << std::endl;
   sotDEBUG(25) << "diff  = "
                << ((previousState_.size() == state_.size())
