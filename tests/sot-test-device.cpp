@@ -287,7 +287,7 @@ void SoTTestDevice::cleanupSetSensors(
 }
 
 void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut,
-                               const double &period) {
+                               const double &) {
   ODEBUG5FULL("start");
   sotDEBUGIN(25);
   vector<double> anglesOut;
@@ -318,31 +318,6 @@ void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut,
   dg::Vector zmpGlobal(4);
   for (unsigned int i = 0; i < 3; ++i) zmpGlobal(i) = zmpSIN(time + 1)(i);
   zmpGlobal(3) = 1.;
-  dgsot::MatrixHomogeneous inversePose;
-
-  inversePose = freeFlyerPose().inverse(Eigen::Affine);
-  dg::Vector localZmp(4);
-  localZmp = inversePose.matrix() * zmpGlobal;
-  vector<double> ZMPRef(3);
-  for (unsigned int i = 0; i < 3; ++i) ZMPRef[i] = localZmp(i);
-
-  controlOut["zmp"].setName("zmp");
-  controlOut["zmp"].setValues(ZMPRef);
-
-  // Update position of freeflyer in global frame
-  Eigen::Vector3d transq_(freeFlyerPose().translation());
-  dg::sot::VectorQuaternion qt_(freeFlyerPose().linear());
-
-  // translation
-  for (int i = 0; i < 3; i++) baseff_[i] = transq_(i);
-
-  // rotation: quaternion
-  baseff_[3] = qt_.w();
-  baseff_[4] = qt_.x();
-  baseff_[5] = qt_.y();
-  baseff_[6] = qt_.z();
-
-  controlOut["baseff"].setValues(baseff_);
   ODEBUG5FULL("end");
   sotDEBUGOUT(25);
 }
