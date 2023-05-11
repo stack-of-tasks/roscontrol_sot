@@ -41,7 +41,7 @@ class SoTTestController : public dgsot::AbstractSotExternalInterface {
   void getControl(std::map<std::string, dgsot::ControlValues> &anglesOut,
                   const double &period);
 
-  void setControlSize(const int& size);
+  void setControlSize(const int &size);
   void initialize();
   void setNoIntegration(void);
   void setSecondOrderIntegration(void);

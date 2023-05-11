@@ -101,14 +101,11 @@ void SoTTestController::getControl(
   }
 }
 
-void SoTTestController::setControlSize(const int& size)
-{
+void SoTTestController::setControlSize(const int &size) {
   device_->setControlSize(size);
 }
 
-void SoTTestController::initialize()
-{
-}
+void SoTTestController::initialize() {}
 
 void SoTTestController::setNoIntegration(void) { device_->setNoIntegration(); }
 
