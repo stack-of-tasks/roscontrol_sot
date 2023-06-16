@@ -22,6 +22,7 @@
 
 namespace dgsot = dynamicgraph::sot;
 namespace dg = dynamicgraph;
+typedef dg::sigtime_t sigtime_t;
 
 class SoTTestDevice : public dgsot::Device {
  public:
@@ -54,34 +55,34 @@ class SoTTestDevice : public dgsot::Device {
   std::vector<double> baseff_;
 
   /// Accelerations measured by accelerometers
-  dynamicgraph::Signal<dg::Vector, int> accelerometerSOUT_;
+  dynamicgraph::Signal<dg::Vector, sigtime_t> accelerometerSOUT_;
   /// Rotation velocity measured by gyrometers
-  dynamicgraph::Signal<dg::Vector, int> gyrometerSOUT_;
+  dynamicgraph::Signal<dg::Vector, sigtime_t> gyrometerSOUT_;
   /// motor currents
-  dynamicgraph::Signal<dg::Vector, int> currentsSOUT_;
+  dynamicgraph::Signal<dg::Vector, sigtime_t> currentsSOUT_;
   /// joint angles
-  dynamicgraph::Signal<dg::Vector, int> joint_anglesSOUT_;
+  dynamicgraph::Signal<dg::Vector, sigtime_t> joint_anglesSOUT_;
   /// motor angles
-  dynamicgraph::Signal<dg::Vector, int> motor_anglesSOUT_;
+  dynamicgraph::Signal<dg::Vector, sigtime_t> motor_anglesSOUT_;
 
   /// proportional and derivative position-control gains
-  dynamicgraph::Signal<dg::Vector, int> p_gainsSOUT_;
+  dynamicgraph::Signal<dg::Vector, sigtime_t> p_gainsSOUT_;
 
-  dynamicgraph::Signal<dg::Vector, int> d_gainsSOUT_;
+  dynamicgraph::Signal<dg::Vector, sigtime_t> d_gainsSOUT_;
 
   /// Protected methods for internal variables filling
   void setSensorsForce(std::map<std::string, dgsot::SensorValues> &SensorsIn,
-                       int t);
+                       sigtime_t t);
   void setSensorsIMU(std::map<std::string, dgsot::SensorValues> &SensorsIn,
-                     int t);
+                     sigtime_t t);
   void setSensorsEncoders(std::map<std::string, dgsot::SensorValues> &SensorsIn,
-                          int t);
+                          sigtime_t t);
   void setSensorsVelocities(
-      std::map<std::string, dgsot::SensorValues> &SensorsIn, int t);
+      std::map<std::string, dgsot::SensorValues> &SensorsIn, sigtime_t t);
   void setSensorsTorquesCurrents(
-      std::map<std::string, dgsot::SensorValues> &SensorsIn, int t);
+      std::map<std::string, dgsot::SensorValues> &SensorsIn, sigtime_t t);
   void setSensorsGains(std::map<std::string, dgsot::SensorValues> &SensorsIn,
-                       int t);
+                       sigtime_t t);
 
   /// Intermediate variables to avoid allocation during control
   dg::Vector dgforces_;
