@@ -107,7 +107,7 @@ SoTTestDevice::SoTTestDevice(std::string RobotName)
 SoTTestDevice::~SoTTestDevice() {}
 
 void SoTTestDevice::setSensorsForce(map<string, dgsot::SensorValues> &SensorsIn,
-                                    int t) {
+                                    sigtime_t t) {
   int map_sot_2_urdf[4] = {2, 0, 3, 1};
   sotDEBUGIN(15);
   map<string, dgsot::SensorValues>::iterator it;
@@ -133,7 +133,7 @@ void SoTTestDevice::setSensorsForce(map<string, dgsot::SensorValues> &SensorsIn,
 }
 
 void SoTTestDevice::setSensorsIMU(map<string, dgsot::SensorValues> &SensorsIn,
-                                  int t) {
+                                  sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
   // TODO: Confirm if this can be made quaternion
   it = SensorsIn.find("attitude");
@@ -164,7 +164,7 @@ void SoTTestDevice::setSensorsIMU(map<string, dgsot::SensorValues> &SensorsIn,
 }
 
 void SoTTestDevice::setSensorsEncoders(
-    map<string, dgsot::SensorValues> &SensorsIn, int t) {
+    map<string, dgsot::SensorValues> &SensorsIn, sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
 
   it = SensorsIn.find("motor-angles");
@@ -195,7 +195,7 @@ void SoTTestDevice::setSensorsEncoders(
 }
 
 void SoTTestDevice::setSensorsVelocities(
-    map<string, dgsot::SensorValues> &SensorsIn, int t) {
+    map<string, dgsot::SensorValues> &SensorsIn, sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
 
   it = SensorsIn.find("velocities");
@@ -212,7 +212,7 @@ void SoTTestDevice::setSensorsVelocities(
 }
 
 void SoTTestDevice::setSensorsTorquesCurrents(
-    map<string, dgsot::SensorValues> &SensorsIn, int t) {
+    map<string, dgsot::SensorValues> &SensorsIn, sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
   it = SensorsIn.find("torques");
   if (it != SensorsIn.end()) {
@@ -235,7 +235,7 @@ void SoTTestDevice::setSensorsTorquesCurrents(
 }
 
 void SoTTestDevice::setSensorsGains(map<string, dgsot::SensorValues> &SensorsIn,
-                                    int t) {
+                                    sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
   it = SensorsIn.find("p_gains");
   if (it != SensorsIn.end()) {
@@ -259,7 +259,7 @@ void SoTTestDevice::setSensorsGains(map<string, dgsot::SensorValues> &SensorsIn,
 void SoTTestDevice::setSensors(map<string, dgsot::SensorValues> &SensorsIn) {
   sotDEBUGIN(25);
   map<string, dgsot::SensorValues>::iterator it;
-  int t = stateSOUT.getTime() + 1;
+  sigtime_t t = stateSOUT.getTime() + 1;
 
   setSensorsForce(SensorsIn, t);
   setSensorsIMU(SensorsIn, t);
@@ -312,7 +312,7 @@ void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut,
   for (unsigned int i = 6; i < state_.size(); ++i) anglesOut[i - 6] = state_(i);
   controlOut["control"].setValues(anglesOut);
   // Read zmp reference from input signal if plugged
-  int time = controlSIN.getTime();
+  sigtime_t time = controlSIN.getTime();
   zmpSIN.recompute(time + 1);
   // Express ZMP in free flyer reference frame
   dg::Vector zmpGlobal(4);
