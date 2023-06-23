@@ -101,7 +101,7 @@ void SoTTestController::getControl(
   }
 }
 
-void SoTTestController::setControlSize(const int &size) {
+void SoTTestController::setControlSize(const size_type &size) {
   device_->setControlSize(size);
 }
 
