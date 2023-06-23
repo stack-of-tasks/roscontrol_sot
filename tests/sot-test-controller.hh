@@ -25,6 +25,7 @@ namespace dgsot = dynamicgraph::sot;
 
 class SoTTestController : public dgsot::AbstractSotExternalInterface {
  public:
+  typedef dynamicgraph::size_type size_type;
   static const std::string LOG_PYTHON;
 
   SoTTestController();
@@ -41,7 +42,7 @@ class SoTTestController : public dgsot::AbstractSotExternalInterface {
   void getControl(std::map<std::string, dgsot::ControlValues> &anglesOut,
                   const double &period);
 
-  void setControlSize(const int &size);
+  void setControlSize(const size_type &size);
   void initialize();
   void setNoIntegration(void);
   void setSecondOrderIntegration(void);

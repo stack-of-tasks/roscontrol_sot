@@ -61,7 +61,7 @@ using namespace rc_sot_system;
 namespace sot_controller {
 typedef std::map<std::string, std::string>::iterator it_map_rt_to_sot;
 typedef std::map<std::string, std::string>::iterator it_control_mode;
-
+typedef dynamicgraph::size_type size_type;
 ControlPDMotorControlData::ControlPDMotorControlData() {}
 
 void ControlPDMotorControlData::read_from_xmlrpc_value(
@@ -171,7 +171,7 @@ bool RCSotController::initRequest(lhi::RobotHW *robot_hw,
   ROS_WARN("initRequest 4");
   /// Create SoT
   SotLoaderBasic::Initialization();
-  sotController_->setControlSize((int)joints_name_.size());
+  sotController_->setControlSize((size_type)joints_name_.size());
   ROS_WARN("initRequest 5");
   return true;
 }
