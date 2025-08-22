@@ -2,6 +2,7 @@
 This file tests the output of executable sot-test-log compiled from
 tests/sot-test-log.cc.
 """
+
 import unittest
 import subprocess
 import csv

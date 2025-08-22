@@ -326,7 +326,7 @@ bool RCSotController::initInterfaces(lhi::RobotHW *robot_hw, ros::NodeHandle &,
 #endif
   if (verbosity_level_ > 0)
     ROS_INFO_STREAM("Initialization of sot-controller Ok !");
-    // success
+  // success
 #ifdef CONTROLLER_INTERFACE_NOETIC
   state_ = ControllerState::INITIALIZED;
 #else
