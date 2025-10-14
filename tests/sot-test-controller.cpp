@@ -35,7 +35,7 @@ boost::condition_variable cond;
 boost::mutex mut;
 bool data_ready;
 
-void workThread(SoTTestController *aSoTTest) {
+void workThread(SoTTestController* aSoTTest) {
   dynamicgraph::Interpreter aLocalInterpreter(
       dynamicgraph::rosInit(false, true));
 
@@ -74,34 +74,34 @@ void SoTTestController::init() {
 SoTTestController::~SoTTestController() {}
 
 void SoTTestController::setupSetSensors(
-    map<string, dgsot::SensorValues> &SensorsIn) {
+    map<string, dgsot::SensorValues>& SensorsIn) {
   device_->setupSetSensors(SensorsIn);
 }
 
 void SoTTestController::nominalSetSensors(
-    map<string, dgsot::SensorValues> &SensorsIn) {
+    map<string, dgsot::SensorValues>& SensorsIn) {
   device_->nominalSetSensors(SensorsIn);
 }
 
 void SoTTestController::cleanupSetSensors(
-    map<string, dgsot::SensorValues> &SensorsIn) {
+    map<string, dgsot::SensorValues>& SensorsIn) {
   device_->cleanupSetSensors(SensorsIn);
 }
 
 void SoTTestController::getControl(
-    map<string, dgsot::ControlValues> &controlOut, const double &period) {
+    map<string, dgsot::ControlValues>& controlOut, const double& period) {
   try {
     sotDEBUG(25) << __FILE__ << __FUNCTION__ << "(#" << __LINE__ << ")" << endl;
     device_->getControl(controlOut, period);
     sotDEBUG(25) << __FILE__ << __FUNCTION__ << "(#" << __LINE__ << ")" << endl;
-  } catch (dynamicgraph::sot::ExceptionAbstract &err) {
+  } catch (dynamicgraph::sot::ExceptionAbstract& err) {
     std::cout << __FILE__ << " " << __FUNCTION__ << " (" << __LINE__ << ") "
               << err.getStringMessage() << endl;
     throw err;
   }
 }
 
-void SoTTestController::setControlSize(const size_type &size) {
+void SoTTestController::setControlSize(const size_type& size) {
   device_->setControlSize(size);
 }
 
@@ -113,9 +113,9 @@ void SoTTestController::setSecondOrderIntegration(void) {
   device_->setSecondOrderIntegration();
 }
 
-void SoTTestController::runPython(std::ostream &file,
-                                  const std::string &command,
-                                  dynamicgraph::Interpreter &interpreter) {
+void SoTTestController::runPython(std::ostream& file,
+                                  const std::string& command,
+                                  dynamicgraph::Interpreter& interpreter) {
   file << ">>> " << command << std::endl;
   std::string lerr(""), lout(""), lres("");
   interpreter.runCommand(command, lres, lout, lerr);
@@ -151,7 +151,7 @@ void SoTTestController::startupPython() {
 }
 
 extern "C" {
-dgsot::AbstractSotExternalInterface *createSotExternalInterface() {
+dgsot::AbstractSotExternalInterface* createSotExternalInterface() {
   return new SoTTestController("test_robot");
 }
 }

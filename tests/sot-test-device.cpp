@@ -106,7 +106,7 @@ SoTTestDevice::SoTTestDevice(std::string RobotName)
 
 SoTTestDevice::~SoTTestDevice() {}
 
-void SoTTestDevice::setSensorsForce(map<string, dgsot::SensorValues> &SensorsIn,
+void SoTTestDevice::setSensorsForce(map<string, dgsot::SensorValues>& SensorsIn,
                                     sigtime_t t) {
   int map_sot_2_urdf[4] = {2, 0, 3, 1};
   sotDEBUGIN(15);
@@ -114,7 +114,7 @@ void SoTTestDevice::setSensorsForce(map<string, dgsot::SensorValues> &SensorsIn,
   it = SensorsIn.find("forces");
   if (it != SensorsIn.end()) {
     // Implements force recollection.
-    const vector<double> &forcesIn = it->second.getValues();
+    const vector<double>& forcesIn = it->second.getValues();
     if (forcesIn.size() != 0) {
       for (int i = 0; i < 4; ++i) {
         sotDEBUG(15) << "Force sensor " << i << std::endl;
@@ -132,13 +132,13 @@ void SoTTestDevice::setSensorsForce(map<string, dgsot::SensorValues> &SensorsIn,
   sotDEBUGIN(15);
 }
 
-void SoTTestDevice::setSensorsIMU(map<string, dgsot::SensorValues> &SensorsIn,
+void SoTTestDevice::setSensorsIMU(map<string, dgsot::SensorValues>& SensorsIn,
                                   sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
   // TODO: Confirm if this can be made quaternion
   it = SensorsIn.find("attitude");
   if (it != SensorsIn.end()) {
-    const vector<double> &attitude = it->second.getValues();
+    const vector<double>& attitude = it->second.getValues();
     for (unsigned int i = 0; i < 3; ++i)
       for (unsigned int j = 0; j < 3; ++j) pose(i, j) = attitude[i * 3 + j];
     attitudeSOUT.setConstant(pose);
@@ -147,7 +147,7 @@ void SoTTestDevice::setSensorsIMU(map<string, dgsot::SensorValues> &SensorsIn,
 
   it = SensorsIn.find("accelerometer_0");
   if (it != SensorsIn.end()) {
-    const vector<double> &accelerometer =
+    const vector<double>& accelerometer =
         SensorsIn["accelerometer_0"].getValues();
     for (std::size_t i = 0; i < 3; ++i) accelerometer_(i) = accelerometer[i];
     accelerometerSOUT_.setConstant(accelerometer_);
@@ -156,7 +156,7 @@ void SoTTestDevice::setSensorsIMU(map<string, dgsot::SensorValues> &SensorsIn,
 
   it = SensorsIn.find("gyrometer_0");
   if (it != SensorsIn.end()) {
-    const vector<double> &gyrometer = SensorsIn["gyrometer_0"].getValues();
+    const vector<double>& gyrometer = SensorsIn["gyrometer_0"].getValues();
     for (std::size_t i = 0; i < 3; ++i) gyrometer_(i) = gyrometer[i];
     gyrometerSOUT_.setConstant(gyrometer_);
     gyrometerSOUT_.setTime(t);
@@ -164,12 +164,12 @@ void SoTTestDevice::setSensorsIMU(map<string, dgsot::SensorValues> &SensorsIn,
 }
 
 void SoTTestDevice::setSensorsEncoders(
-    map<string, dgsot::SensorValues> &SensorsIn, sigtime_t t) {
+    map<string, dgsot::SensorValues>& SensorsIn, sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
 
   it = SensorsIn.find("motor-angles");
   if (it != SensorsIn.end()) {
-    const vector<double> &anglesIn = it->second.getValues();
+    const vector<double>& anglesIn = it->second.getValues();
     dgRobotState_.resize(anglesIn.size() + 6);
     motor_angles_.resize(anglesIn.size());
     for (unsigned i = 0; i < 6; ++i) dgRobotState_(i) = 0.;
@@ -185,7 +185,7 @@ void SoTTestDevice::setSensorsEncoders(
 
   it = SensorsIn.find("joint-angles");
   if (it != SensorsIn.end()) {
-    const vector<double> &joint_anglesIn = it->second.getValues();
+    const vector<double>& joint_anglesIn = it->second.getValues();
     joint_angles_.resize(joint_anglesIn.size());
     for (unsigned i = 0; i < joint_anglesIn.size(); ++i)
       joint_angles_(i) = joint_anglesIn[i];
@@ -195,12 +195,12 @@ void SoTTestDevice::setSensorsEncoders(
 }
 
 void SoTTestDevice::setSensorsVelocities(
-    map<string, dgsot::SensorValues> &SensorsIn, sigtime_t t) {
+    map<string, dgsot::SensorValues>& SensorsIn, sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
 
   it = SensorsIn.find("velocities");
   if (it != SensorsIn.end()) {
-    const vector<double> &velocitiesIn = it->second.getValues();
+    const vector<double>& velocitiesIn = it->second.getValues();
     dgRobotVelocity_.resize(velocitiesIn.size() + 6);
     for (unsigned i = 0; i < 6; ++i) dgRobotVelocity_(i) = 0.;
     for (unsigned i = 0; i < velocitiesIn.size(); ++i) {
@@ -212,11 +212,11 @@ void SoTTestDevice::setSensorsVelocities(
 }
 
 void SoTTestDevice::setSensorsTorquesCurrents(
-    map<string, dgsot::SensorValues> &SensorsIn, sigtime_t t) {
+    map<string, dgsot::SensorValues>& SensorsIn, sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
   it = SensorsIn.find("torques");
   if (it != SensorsIn.end()) {
-    const std::vector<double> &torques = SensorsIn["torques"].getValues();
+    const std::vector<double>& torques = SensorsIn["torques"].getValues();
     torques_.resize(torques.size());
     for (std::size_t i = 0; i < torques.size(); ++i) torques_(i) = torques[i];
     pseudoTorqueSOUT.setConstant(torques_);
@@ -225,7 +225,7 @@ void SoTTestDevice::setSensorsTorquesCurrents(
 
   it = SensorsIn.find("currents");
   if (it != SensorsIn.end()) {
-    const std::vector<double> &currents = SensorsIn["currents"].getValues();
+    const std::vector<double>& currents = SensorsIn["currents"].getValues();
     currents_.resize(currents.size());
     for (std::size_t i = 0; i < currents.size(); ++i)
       currents_(i) = currents[i];
@@ -234,12 +234,12 @@ void SoTTestDevice::setSensorsTorquesCurrents(
   }
 }
 
-void SoTTestDevice::setSensorsGains(map<string, dgsot::SensorValues> &SensorsIn,
+void SoTTestDevice::setSensorsGains(map<string, dgsot::SensorValues>& SensorsIn,
                                     sigtime_t t) {
   map<string, dgsot::SensorValues>::iterator it;
   it = SensorsIn.find("p_gains");
   if (it != SensorsIn.end()) {
-    const std::vector<double> &p_gains = SensorsIn["p_gains"].getValues();
+    const std::vector<double>& p_gains = SensorsIn["p_gains"].getValues();
     p_gains_.resize(p_gains.size());
     for (std::size_t i = 0; i < p_gains.size(); ++i) p_gains_(i) = p_gains[i];
     p_gainsSOUT_.setConstant(p_gains_);
@@ -248,7 +248,7 @@ void SoTTestDevice::setSensorsGains(map<string, dgsot::SensorValues> &SensorsIn,
 
   it = SensorsIn.find("d_gains");
   if (it != SensorsIn.end()) {
-    const std::vector<double> &d_gains = SensorsIn["d_gains"].getValues();
+    const std::vector<double>& d_gains = SensorsIn["d_gains"].getValues();
     d_gains_.resize(d_gains.size());
     for (std::size_t i = 0; i < d_gains.size(); ++i) d_gains_(i) = d_gains[i];
     d_gainsSOUT_.setConstant(d_gains_);
@@ -256,7 +256,7 @@ void SoTTestDevice::setSensorsGains(map<string, dgsot::SensorValues> &SensorsIn,
   }
 }
 
-void SoTTestDevice::setSensors(map<string, dgsot::SensorValues> &SensorsIn) {
+void SoTTestDevice::setSensors(map<string, dgsot::SensorValues>& SensorsIn) {
   sotDEBUGIN(25);
   map<string, dgsot::SensorValues>::iterator it;
   sigtime_t t = stateSOUT.getTime() + 1;
@@ -272,22 +272,22 @@ void SoTTestDevice::setSensors(map<string, dgsot::SensorValues> &SensorsIn) {
 }
 
 void SoTTestDevice::setupSetSensors(
-    map<string, dgsot::SensorValues> &SensorsIn) {
+    map<string, dgsot::SensorValues>& SensorsIn) {
   setSensors(SensorsIn);
 }
 
 void SoTTestDevice::nominalSetSensors(
-    map<string, dgsot::SensorValues> &SensorsIn) {
+    map<string, dgsot::SensorValues>& SensorsIn) {
   setSensors(SensorsIn);
 }
 
 void SoTTestDevice::cleanupSetSensors(
-    map<string, dgsot::SensorValues> &SensorsIn) {
+    map<string, dgsot::SensorValues>& SensorsIn) {
   setSensors(SensorsIn);
 }
 
-void SoTTestDevice::getControl(map<string, dgsot::ControlValues> &controlOut,
-                               const double &) {
+void SoTTestDevice::getControl(map<string, dgsot::ControlValues>& controlOut,
+                               const double&) {
   ODEBUG5FULL("start");
   sotDEBUGIN(25);
   vector<double> anglesOut;
@@ -327,18 +327,18 @@ using namespace dynamicgraph::sot;
 namespace dynamicgraph {
 namespace sot {
 #ifdef WIN32
-const char *DebugTrace::DEBUG_FILENAME_DEFAULT = "c:/tmp/sot-core-traces.txt";
+const char* DebugTrace::DEBUG_FILENAME_DEFAULT = "c:/tmp/sot-core-traces.txt";
 #else   // WIN32
-const char *DebugTrace::DEBUG_FILENAME_DEFAULT = "/tmp/sot-core-traces.txt";
+const char* DebugTrace::DEBUG_FILENAME_DEFAULT = "/tmp/sot-core-traces.txt";
 #endif  // WIN32
 
 #ifdef VP_DEBUG
 #ifdef WIN32
 std::ofstream debugfile("C:/tmp/sot-core-traces.txt",
-                        std::ios::trunc &std::ios::out);
+                        std::ios::trunc& std::ios::out);
 #else   // WIN32
 std::ofstream debugfile("/tmp/sot-core-traces.txt",
-                        std::ios::trunc &std::ios::out);
+                        std::ios::trunc& std::ios::out);
 #endif  // WIN32
 #else   // VP_DEBUG
 

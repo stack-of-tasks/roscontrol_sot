@@ -50,7 +50,7 @@ struct DataToLog {
   ProfileLog profileLog_;
 
   DataToLog();
-  void init(ProfileLog &aProfileLog);
+  void init(ProfileLog& aProfileLog);
   std::size_t nbDofs() { return profileLog_.nbDofs; }
   std::size_t nbForceSensors() { return profileLog_.nbForceSensors; }
   std::size_t length() { return profileLog_.length; }
@@ -78,16 +78,16 @@ class Log {
   // \param size number of contiguous values of avector that forms one line.
   // \note avector is a circular buffer. Data will be written from
   //       start to N, and then from 0 to start.
-  void saveVector(std::string &filename, std::string &suffix,
-                  const std::vector<double> &avector, std::size_t size);
+  void saveVector(std::string& filename, std::string& suffix,
+                  const std::vector<double>& avector, std::size_t size);
 
  public:
   Log();
 
-  void init(ProfileLog &aProfileLog);
-  void record(DataToLog &aDataToLog);
+  void init(ProfileLog& aProfileLog);
+  void record(DataToLog& aDataToLog);
 
-  void save(std::string &fileName);
+  void save(std::string& fileName);
   void start_it();
   /// \return the elapsed time since the previous \ref start_it
   double stop_it();

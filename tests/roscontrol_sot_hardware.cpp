@@ -9,7 +9,7 @@
 #include <sstream>
 
 // Threads
-void *RTloop(void *argument);
+void* RTloop(void* argument);
 
 pthread_mutex_t mutx = PTHREAD_MUTEX_INITIALIZER;  // mutex initialisation
 //******************************************************
@@ -181,14 +181,14 @@ int TestRobot01Class::UpdateCmd() {
 }
 
 typedef struct arg_struct {
-  controller_manager::ControllerManager *cm;
-  TestRobot01Class *testrobot01;
+  controller_manager::ControllerManager* cm;
+  TestRobot01Class* testrobot01;
 } RTloopArgs;
 
-void *RTloop(void *argument) {
+void* RTloop(void* argument) {
   ROS_INFO("IN thread1 OK");
-  RTloopArgs *aRTloopArgs;
-  aRTloopArgs = (RTloopArgs *)argument;
+  RTloopArgs* aRTloopArgs;
+  aRTloopArgs = (RTloopArgs*)argument;
 
   ros::Time last_time = ros::Time::now();
 
@@ -234,7 +234,7 @@ void *RTloop(void *argument) {
   pthread_exit(EXIT_SUCCESS);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   TestRobot01Class testrobot01;
 
   /*---------------- ROS Stuff ------------------ */
@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
 
   // function sets the scheduling policy and parameters of the thread
   error_return = pthread_create(&thread1, NULL, RTloop,
-                                (void *)&aRTloopArgs);  // create a new thread
+                                (void*)&aRTloopArgs);  // create a new thread
   ROS_INFO("thread1 created OK");
 
   if (error_return) {
